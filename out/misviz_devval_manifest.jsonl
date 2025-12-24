@@ -1,0 +1,310 @@
+{"image_path": "misviz/img/000057_bce3633c432c5bc4_truncated axis.png", "image_rel_path": "img/000057_bce3633c432c5bc4_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/000124_bec0c03f1b9e26c3_truncated axis-inconsistent tick intervals.jpg", "image_rel_path": "img/000124_bec0c03f1b9e26c3_truncated axis-inconsistent tick intervals.jpg", "split": "val", "y_true": ["inconsistent tick intervals", "truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/000720_8a952dc9946cd92f_inconsistent binning size.jpg", "image_rel_path": "img/000720_8a952dc9946cd92f_inconsistent binning size.jpg", "split": "dev", "y_true": ["inconsistent binning size"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/000808_b878c7ce183165ce_truncated axis.jpg", "image_rel_path": "img/000808_b878c7ce183165ce_truncated axis.jpg", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/000868_ee91914ec76a3c91_truncated axis.png", "image_rel_path": "img/000868_ee91914ec76a3c91_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/001102_b8ccc7a670398d33_dual axis.jpg", "image_rel_path": "img/001102_b8ccc7a670398d33_dual axis.jpg", "split": "dev", "y_true": ["dual axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/001580_a4b68b5937bb3034_inconsistent tick intervals.png", "image_rel_path": "img/001580_a4b68b5937bb3034_inconsistent tick intervals.png", "split": "val", "y_true": ["inconsistent tick intervals"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/001688_d50d7f7a007f4027_inappropriate axis range.png", "image_rel_path": "img/001688_d50d7f7a007f4027_inappropriate axis range.png", "split": "val", "y_true": ["inappropriate axis range"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/002109_d5e92b1e1ee19518_truncated axis.jpg", "image_rel_path": "img/002109_d5e92b1e1ee19518_truncated axis.jpg", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/002445_805e56955f951f8a_inappropriate item order.png", "image_rel_path": "img/002445_805e56955f951f8a_inappropriate item order.png", "split": "val", "y_true": ["inappropriate item order"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/002620_9dff61a46262c263_inappropriate use of line chart.jpg", "image_rel_path": "img/002620_9dff61a46262c263_inappropriate use of line chart.jpg", "split": "val", "y_true": ["inappropriate use of line chart"], "chart_type": ["bar chart", "line chart"]}
+{"image_path": "misviz/img/002701_912c09da6ed35e55_3d.png", "image_rel_path": "img/002701_912c09da6ed35e55_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/002838_851df8ce73511a66_truncated axis.png", "image_rel_path": "img/002838_851df8ce73511a66_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/003500_b898cd656633399c_truncated axis-dual axis.jpg", "image_rel_path": "img/003500_b898cd656633399c_truncated axis-dual axis.jpg", "split": "dev", "y_true": ["dual axis", "truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/003612_c745b8d2a76ccb22_truncated axis.jpg", "image_rel_path": "img/003612_c745b8d2a76ccb22_truncated axis.jpg", "split": "dev", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/003646_b4cd9b7064369993_3d.jpg", "image_rel_path": "img/003646_b4cd9b7064369993_3d.jpg", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/004174_e917976a1e2d1836_3d.jpg", "image_rel_path": "img/004174_e917976a1e2d1836_3d.jpg", "split": "dev", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/004322_b699cb4d8c661c72_3d.jpg", "image_rel_path": "img/004322_b699cb4d8c661c72_3d.jpg", "split": "val", "y_true": ["3d"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/004586_aa352d6a6a6a6cac_truncated axis.png", "image_rel_path": "img/004586_aa352d6a6a6a6cac_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/004592_fe818563817ed21e_truncated axis.jpg", "image_rel_path": "img/004592_fe818563817ed21e_truncated axis.jpg", "split": "dev", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/005086_bdb0c607333cc0fc_inappropriate item order.jpg", "image_rel_path": "img/005086_bdb0c607333cc0fc_inappropriate item order.jpg", "split": "dev", "y_true": ["inappropriate item order"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/005327_ea48353f60cc1ed3_truncated axis.jpg", "image_rel_path": "img/005327_ea48353f60cc1ed3_truncated axis.jpg", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/005591_ea9495ca9e299a65_3d.jpg", "image_rel_path": "img/005591_ea9495ca9e299a65_3d.jpg", "split": "dev", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/006307_94d26bbd94b0c395_truncated axis.jpg", "image_rel_path": "img/006307_94d26bbd94b0c395_truncated axis.jpg", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/006340_a2d16efd3f27e000_misrepresentation.jpg", "image_rel_path": "img/006340_a2d16efd3f27e000_misrepresentation.jpg", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/622734276771889152_misrepresentation.png", "image_rel_path": "img/622734276771889152_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/182325378638_inappropriate use of pie chart.png", "image_rel_path": "img/182325378638_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/182116123529_inappropriate use of pie chart.png", "image_rel_path": "img/182116123529_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/171134950336_3d.png", "image_rel_path": "img/171134950336_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/167419510072_misrepresentation.png", "image_rel_path": "img/167419510072_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/155126917781_3d.png", "image_rel_path": "img/155126917781_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/155080322184_3d.png", "image_rel_path": "img/155080322184_3d.png", "split": "dev", "y_true": ["3d"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/154902634015_3d_truncated axis.png", "image_rel_path": "img/154902634015_3d_truncated axis.png", "split": "dev", "y_true": ["3d", "truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/152692461689_truncated axis.png", "image_rel_path": "img/152692461689_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/151247799248_inappropriate use of pie chart.png", "image_rel_path": "img/151247799248_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/150269884422_misrepresentation.png", "image_rel_path": "img/150269884422_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/149329003647_misrepresentation.png", "image_rel_path": "img/149329003647_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/147602459193_3d.png", "image_rel_path": "img/147602459193_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/146807879143_3d.png", "image_rel_path": "img/146807879143_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/146663370631_misrepresentation.png", "image_rel_path": "img/146663370631_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/146315260090_3d.png", "image_rel_path": "img/146315260090_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/144915386323_inappropriate use of pie chart.png", "image_rel_path": "img/144915386323_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/143016780930_misrepresentation.png", "image_rel_path": "img/143016780930_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/141671036884_misrepresentation.png", "image_rel_path": "img/141671036884_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/140284813116_misrepresentation.png", "image_rel_path": "img/140284813116_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/139801160522_3d.png", "image_rel_path": "img/139801160522_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/139183346422_misrepresentation.png", "image_rel_path": "img/139183346422_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/139002022202_3d.png", "image_rel_path": "img/139002022202_3d.png", "split": "dev", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/138228368559_3d.png", "image_rel_path": "img/138228368559_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/133542197129_misrepresentation.png", "image_rel_path": "img/133542197129_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/132883468880_misrepresentation.png", "image_rel_path": "img/132883468880_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/131565650657_misrepresentation.png", "image_rel_path": "img/131565650657_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/131500097802_inappropriate use of pie chart.png", "image_rel_path": "img/131500097802_inappropriate use of pie chart.png", "split": "dev", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/130961162408_3d.png", "image_rel_path": "img/130961162408_3d.png", "split": "dev", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/130073018731_misrepresentation.png", "image_rel_path": "img/130073018731_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/130000700470_misrepresentation.png", "image_rel_path": "img/130000700470_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/129927467922_3d.png", "image_rel_path": "img/129927467922_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/128930984842_3d.png", "image_rel_path": "img/128930984842_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/126521520409_misrepresentation.png", "image_rel_path": "img/126521520409_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/125688279087_misrepresentation.png", "image_rel_path": "img/125688279087_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/125444490856_misrepresentation.png", "image_rel_path": "img/125444490856_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/124494277239_misrepresentation.png", "image_rel_path": "img/124494277239_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/123814344357_misrepresentation.png", "image_rel_path": "img/123814344357_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/123748086190_3d_misrepresentation.png", "image_rel_path": "img/123748086190_3d_misrepresentation.png", "split": "val", "y_true": ["3d", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/123054600111_inappropriate use of pie chart.png", "image_rel_path": "img/123054600111_inappropriate use of pie chart.png", "split": "dev", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/122966731855_misrepresentation.png", "image_rel_path": "img/122966731855_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/122173312995_3d_misrepresentation.png", "image_rel_path": "img/122173312995_3d_misrepresentation.png", "split": "val", "y_true": ["3d", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/121926771462_misrepresentation.png", "image_rel_path": "img/121926771462_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/121277748164_3d.png", "image_rel_path": "img/121277748164_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/121211111113_3d.png", "image_rel_path": "img/121211111113_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["other", "pie chart"]}
+{"image_path": "misviz/img/121112406566_inconsistent tick intervals.png", "image_rel_path": "img/121112406566_inconsistent tick intervals.png", "split": "val", "y_true": ["inconsistent tick intervals"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/120273960517_misrepresentation.png", "image_rel_path": "img/120273960517_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/120028274821_misrepresentation.png", "image_rel_path": "img/120028274821_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/119944593074_misrepresentation.png", "image_rel_path": "img/119944593074_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/119529349425_misrepresentation.png", "image_rel_path": "img/119529349425_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/118884923613_misrepresentation.png", "image_rel_path": "img/118884923613_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/118802440686_3d.png", "image_rel_path": "img/118802440686_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/118615631972_3d_misrepresentation.png", "image_rel_path": "img/118615631972_3d_misrepresentation.png", "split": "dev", "y_true": ["3d", "misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/118530887186_3d_misrepresentation.png", "image_rel_path": "img/118530887186_3d_misrepresentation.png", "split": "val", "y_true": ["3d", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/118304478593_3d_misrepresentation.png", "image_rel_path": "img/118304478593_3d_misrepresentation.png", "split": "dev", "y_true": ["3d", "misrepresentation"], "chart_type": ["bar chart", "other"]}
+{"image_path": "misviz/img/116563038399_misrepresentation.png", "image_rel_path": "img/116563038399_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/115304458968_3d.png", "image_rel_path": "img/115304458968_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/114778053908_misrepresentation.png", "image_rel_path": "img/114778053908_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/112812486218_3d.png", "image_rel_path": "img/112812486218_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/112721030424_misrepresentation.png", "image_rel_path": "img/112721030424_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/111980651189_misrepresentation.png", "image_rel_path": "img/111980651189_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/111109222312_misrepresentation.png", "image_rel_path": "img/111109222312_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/110276700184_3d_truncated axis.png", "image_rel_path": "img/110276700184_3d_truncated axis.png", "split": "val", "y_true": ["3d", "truncated axis"], "chart_type": ["bar chart", "pie chart"]}
+{"image_path": "misviz/img/110100538611_misrepresentation.png", "image_rel_path": "img/110100538611_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/109989878420_misrepresentation.png", "image_rel_path": "img/109989878420_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/109236619445_3d_misrepresentation.png", "image_rel_path": "img/109236619445_3d_misrepresentation.png", "split": "dev", "y_true": ["3d", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/108766792800_misrepresentation.png", "image_rel_path": "img/108766792800_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/108459586058_3d_misrepresentation.png", "image_rel_path": "img/108459586058_3d_misrepresentation.png", "split": "dev", "y_true": ["3d", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/107805685158_misrepresentation.png", "image_rel_path": "img/107805685158_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/107440754050_misrepresentation.png", "image_rel_path": "img/107440754050_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/107328222207_misrepresentation.png", "image_rel_path": "img/107328222207_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/107249399015_misrepresentation.png", "image_rel_path": "img/107249399015_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["other", "pie chart"]}
+{"image_path": "misviz/img/107021713546_misrepresentation.png", "image_rel_path": "img/107021713546_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/105474271372_3d_misrepresentation.png", "image_rel_path": "img/105474271372_3d_misrepresentation.png", "split": "val", "y_true": ["3d", "misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/105297185538_3d.png", "image_rel_path": "img/105297185538_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/105279815261_3d.png", "image_rel_path": "img/105279815261_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/105209596454_3d.png", "image_rel_path": "img/105209596454_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/104937430886_misrepresentation.png", "image_rel_path": "img/104937430886_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/104103523155_inappropriate use of pie chart.png", "image_rel_path": "img/104103523155_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/103753991892_3d.png", "image_rel_path": "img/103753991892_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/102460220259_3d.png", "image_rel_path": "img/102460220259_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/101593359742_inverted axis_misrepresentation.png", "image_rel_path": "img/101593359742_inverted axis_misrepresentation.png", "split": "val", "y_true": ["inverted axis", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/101520355910_3d.png", "image_rel_path": "img/101520355910_3d.png", "split": "dev", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/101363923617_misrepresentation.png", "image_rel_path": "img/101363923617_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/100420384018_misrepresentation.png", "image_rel_path": "img/100420384018_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/98576911581_misrepresentation.png", "image_rel_path": "img/98576911581_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/98477588990_3d_misrepresentation.png", "image_rel_path": "img/98477588990_3d_misrepresentation.png", "split": "val", "y_true": ["3d", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/97756423351_misrepresentation.png", "image_rel_path": "img/97756423351_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart", "other"]}
+{"image_path": "misviz/img/97575078031_misrepresentation.png", "image_rel_path": "img/97575078031_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/97412928410_misrepresentation.png", "image_rel_path": "img/97412928410_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/96462955507_misrepresentation.png", "image_rel_path": "img/96462955507_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/95939369473_misrepresentation.png", "image_rel_path": "img/95939369473_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/95851327193_truncated axis.png", "image_rel_path": "img/95851327193_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/94563874355_misrepresentation.png", "image_rel_path": "img/94563874355_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/94545502084_3d.png", "image_rel_path": "img/94545502084_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/94276370877_misrepresentation.png", "image_rel_path": "img/94276370877_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/94169618136_misrepresentation.png", "image_rel_path": "img/94169618136_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/93415817205_inappropriate use of pie chart.png", "image_rel_path": "img/93415817205_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/92249911913_inappropriate use of pie chart_misrepresentation.png", "image_rel_path": "img/92249911913_inappropriate use of pie chart_misrepresentation.png", "split": "dev", "y_true": ["inappropriate use of pie chart", "misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/91757544792_misrepresentation.png", "image_rel_path": "img/91757544792_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/91655522460_3d_misrepresentation.png", "image_rel_path": "img/91655522460_3d_misrepresentation.png", "split": "dev", "y_true": ["3d", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/91264699230_misrepresentation.png", "image_rel_path": "img/91264699230_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/91079679500_misrepresentation.png", "image_rel_path": "img/91079679500_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/91059330093_misrepresentation.png", "image_rel_path": "img/91059330093_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/89372358137_misrepresentation.png", "image_rel_path": "img/89372358137_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/89070672041_inappropriate use of pie chart.png", "image_rel_path": "img/89070672041_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/88697548819_misrepresentation.png", "image_rel_path": "img/88697548819_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/87827456887_misrepresentation.png", "image_rel_path": "img/87827456887_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/85752224118_misrepresentation.png", "image_rel_path": "img/85752224118_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/83846391643_misrepresentation.png", "image_rel_path": "img/83846391643_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/83111135982_inappropriate use of pie chart.png", "image_rel_path": "img/83111135982_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/81791023800_3d_misrepresentation.png", "image_rel_path": "img/81791023800_3d_misrepresentation.png", "split": "val", "y_true": ["3d", "misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/81400520745_misrepresentation.png", "image_rel_path": "img/81400520745_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/81321921354_3d.png", "image_rel_path": "img/81321921354_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/79900334483_inappropriate use of pie chart.png", "image_rel_path": "img/79900334483_inappropriate use of pie chart.png", "split": "dev", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/79798265881_misrepresentation.png", "image_rel_path": "img/79798265881_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/79469099741_3d_misrepresentation.png", "image_rel_path": "img/79469099741_3d_misrepresentation.png", "split": "dev", "y_true": ["3d", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/78882103797_misrepresentation.png", "image_rel_path": "img/78882103797_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/78042351189_misrepresentation.png", "image_rel_path": "img/78042351189_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/76440003980_inappropriate use of pie chart.png", "image_rel_path": "img/76440003980_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/76132433109_misrepresentation.png", "image_rel_path": "img/76132433109_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/76016694021_3d_misrepresentation.png", "image_rel_path": "img/76016694021_3d_misrepresentation.png", "split": "dev", "y_true": ["3d", "misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/75083622946_misrepresentation.png", "image_rel_path": "img/75083622946_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/73445244145_misrepresentation.png", "image_rel_path": "img/73445244145_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/73424188686_inappropriate use of pie chart_misrepresentation.png", "image_rel_path": "img/73424188686_inappropriate use of pie chart_misrepresentation.png", "split": "val", "y_true": ["inappropriate use of pie chart", "misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/72801324529_inappropriate use of pie chart.png", "image_rel_path": "img/72801324529_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/72780650300_misrepresentation.png", "image_rel_path": "img/72780650300_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/72220605673_misrepresentation.png", "image_rel_path": "img/72220605673_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/70925573081_3d.png", "image_rel_path": "img/70925573081_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/70626119697_misrepresentation.png", "image_rel_path": "img/70626119697_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/70596435248_inappropriate use of pie chart.png", "image_rel_path": "img/70596435248_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/70430475915_inappropriate use of pie chart_misrepresentation.png", "image_rel_path": "img/70430475915_inappropriate use of pie chart_misrepresentation.png", "split": "val", "y_true": ["inappropriate use of pie chart", "misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/67376197336_3d_misrepresentation.png", "image_rel_path": "img/67376197336_3d_misrepresentation.png", "split": "val", "y_true": ["3d", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/66509021026_3d.png", "image_rel_path": "img/66509021026_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/65629844451_misrepresentation.png", "image_rel_path": "img/65629844451_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/65438744778_inappropriate use of pie chart_misrepresentation.png", "image_rel_path": "img/65438744778_inappropriate use of pie chart_misrepresentation.png", "split": "val", "y_true": ["inappropriate use of pie chart", "misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/64212675291_inconsistent tick intervals.png", "image_rel_path": "img/64212675291_inconsistent tick intervals.png", "split": "val", "y_true": ["inconsistent tick intervals"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/63211012579_3d.png", "image_rel_path": "img/63211012579_3d.png", "split": "val", "y_true": ["3d"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/61984430028_inappropriate use of pie chart_misrepresentation.png", "image_rel_path": "img/61984430028_inappropriate use of pie chart_misrepresentation.png", "split": "dev", "y_true": ["inappropriate use of pie chart", "misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/61333120924_inappropriate use of pie chart.png", "image_rel_path": "img/61333120924_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/3rpye9_inappropriate use of pie chart_misrepresentation.png", "image_rel_path": "img/3rpye9_inappropriate use of pie chart_misrepresentation.png", "split": "dev", "y_true": ["inappropriate use of pie chart", "misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/4ue119_misrepresentation.png", "image_rel_path": "img/4ue119_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/4vxll8_inappropriate use of pie chart.png", "image_rel_path": "img/4vxll8_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/4zo43v_inappropriate use of pie chart_misrepresentation.png", "image_rel_path": "img/4zo43v_inappropriate use of pie chart_misrepresentation.png", "split": "val", "y_true": ["inappropriate use of pie chart", "misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/5c8aam_truncated axis.png", "image_rel_path": "img/5c8aam_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/5p803i_inappropriate use of pie chart.png", "image_rel_path": "img/5p803i_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/5sf3cd_misrepresentation.png", "image_rel_path": "img/5sf3cd_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["bar chart", "pie chart"]}
+{"image_path": "misviz/img/6dyuz0_misrepresentation_inconsistent binning size.png", "image_rel_path": "img/6dyuz0_misrepresentation_inconsistent binning size.png", "split": "val", "y_true": ["inconsistent binning size", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/6g4us9_inappropriate use of pie chart.png", "image_rel_path": "img/6g4us9_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/7dcxcd_dual axis.png", "image_rel_path": "img/7dcxcd_dual axis.png", "split": "dev", "y_true": ["dual axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/9axy56_truncated axis.png", "image_rel_path": "img/9axy56_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/9c3163_misrepresentation.png", "image_rel_path": "img/9c3163_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/9vmpiu_truncated axis.png", "image_rel_path": "img/9vmpiu_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/34h3s4_truncated axis.png", "image_rel_path": "img/34h3s4_truncated axis.png", "split": "dev", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/46ha65_truncated axis_3d.png", "image_rel_path": "img/46ha65_truncated axis_3d.png", "split": "val", "y_true": ["3d", "truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/57j5tl_misrepresentation.png", "image_rel_path": "img/57j5tl_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/60polm_misrepresentation.png", "image_rel_path": "img/60polm_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/asodtm_truncated axis.png", "image_rel_path": "img/asodtm_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/bc3a37_3d_inconsistent tick intervals.png", "image_rel_path": "img/bc3a37_3d_inconsistent tick intervals.png", "split": "val", "y_true": ["3d", "inconsistent tick intervals"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/bkucen_inappropriate use of pie chart_misrepresentation.png", "image_rel_path": "img/bkucen_inappropriate use of pie chart_misrepresentation.png", "split": "val", "y_true": ["inappropriate use of pie chart", "misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/bnwtft_truncated axis.png", "image_rel_path": "img/bnwtft_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/duenkp_misrepresentation.png", "image_rel_path": "img/duenkp_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/dvwu0f_inconsistent tick intervals_inconsistent binning size.png", "image_rel_path": "img/dvwu0f_inconsistent tick intervals_inconsistent binning size.png", "split": "val", "y_true": ["inconsistent binning size", "inconsistent tick intervals"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/ercgoi_inappropriate use of line chart_dual axis.png", "image_rel_path": "img/ercgoi_inappropriate use of line chart_dual axis.png", "split": "val", "y_true": ["dual axis", "inappropriate use of line chart"], "chart_type": ["bar chart", "line chart"]}
+{"image_path": "misviz/img/fqnk8s_inappropriate item order.png", "image_rel_path": "img/fqnk8s_inappropriate item order.png", "split": "val", "y_true": ["inappropriate item order"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/hegn08_misrepresentation.png", "image_rel_path": "img/hegn08_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/hgdfbi_truncated axis.png", "image_rel_path": "img/hgdfbi_truncated axis.png", "split": "dev", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/hvl8q7_inappropriate use of pie chart_3d.png", "image_rel_path": "img/hvl8q7_inappropriate use of pie chart_3d.png", "split": "val", "y_true": ["3d", "inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/idvuig_truncated axis.png", "image_rel_path": "img/idvuig_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/jbifom_inappropriate use of pie chart.png", "image_rel_path": "img/jbifom_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/jl5bl0_truncated axis.png", "image_rel_path": "img/jl5bl0_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/js3vwe_misrepresentation.png", "image_rel_path": "img/js3vwe_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/klwdf8_misrepresentation.png", "image_rel_path": "img/klwdf8_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/kvum11_misrepresentation.png", "image_rel_path": "img/kvum11_misrepresentation.png", "split": "dev", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/m5ovba_misrepresentation_inappropriate item order.png", "image_rel_path": "img/m5ovba_misrepresentation_inappropriate item order.png", "split": "dev", "y_true": ["inappropriate item order", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/mtl0iu_truncated axis.png", "image_rel_path": "img/mtl0iu_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/mtsij2_dual axis_inconsistent binning size.png", "image_rel_path": "img/mtsij2_dual axis_inconsistent binning size.png", "split": "val", "y_true": ["dual axis", "inconsistent binning size"], "chart_type": ["bar chart", "line chart"]}
+{"image_path": "misviz/img/muwj8n_truncated axis.png", "image_rel_path": "img/muwj8n_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/n2jipk_inappropriate use of pie chart.png", "image_rel_path": "img/n2jipk_inappropriate use of pie chart.png", "split": "dev", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/oa79u9_truncated axis.png", "image_rel_path": "img/oa79u9_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/ou70e1_misrepresentation.png", "image_rel_path": "img/ou70e1_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/pmiwxu_inverted axis_truncated axis.png", "image_rel_path": "img/pmiwxu_inverted axis_truncated axis.png", "split": "val", "y_true": ["inverted axis", "truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/pn21zh_inappropriate use of pie chart_misrepresentation.png", "image_rel_path": "img/pn21zh_inappropriate use of pie chart_misrepresentation.png", "split": "dev", "y_true": ["inappropriate use of pie chart", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/prgihw_truncated axis_3d.png", "image_rel_path": "img/prgihw_truncated axis_3d.png", "split": "dev", "y_true": ["3d", "truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/ps70dl_3d_misrepresentation.png", "image_rel_path": "img/ps70dl_3d_misrepresentation.png", "split": "val", "y_true": ["3d", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/q6jijq_misrepresentation.png", "image_rel_path": "img/q6jijq_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/sqlt16_misrepresentation.png", "image_rel_path": "img/sqlt16_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/tsxqn2_misrepresentation_inconsistent tick intervals.png", "image_rel_path": "img/tsxqn2_misrepresentation_inconsistent tick intervals.png", "split": "val", "y_true": ["inconsistent tick intervals", "misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/tyu9nq_misrepresentation.png", "image_rel_path": "img/tyu9nq_misrepresentation.png", "split": "val", "y_true": ["misrepresentation"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/ut5dri_truncated axis.png", "image_rel_path": "img/ut5dri_truncated axis.png", "split": "val", "y_true": ["truncated axis"], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/vy3nac_inappropriate use of pie chart.png", "image_rel_path": "img/vy3nac_inappropriate use of pie chart.png", "split": "val", "y_true": ["inappropriate use of pie chart"], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/12o66v.png", "image_rel_path": "img/12o66v.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/1zj6y4.png", "image_rel_path": "img/1zj6y4.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/206r5j.png", "image_rel_path": "img/206r5j.png", "split": "val", "y_true": [], "chart_type": ["bar chart", "line chart"]}
+{"image_path": "misviz/img/22a8o0.png", "image_rel_path": "img/22a8o0.png", "split": "dev", "y_true": [], "chart_type": ["bar chart", "scatter plot"]}
+{"image_path": "misviz/img/2dsi5e.png", "image_rel_path": "img/2dsi5e.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/2hdvax.png", "image_rel_path": "img/2hdvax.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/2jluid.png", "image_rel_path": "img/2jluid.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/2k3v87.png", "image_rel_path": "img/2k3v87.png", "split": "dev", "y_true": [], "chart_type": ["bar chart", "line chart"]}
+{"image_path": "misviz/img/2krimz.png", "image_rel_path": "img/2krimz.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/2s6d1y.png", "image_rel_path": "img/2s6d1y.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/2ucqhm.png", "image_rel_path": "img/2ucqhm.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/32q4fk.png", "image_rel_path": "img/32q4fk.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/340m1s.png", "image_rel_path": "img/340m1s.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/34f6bl.png", "image_rel_path": "img/34f6bl.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/39pay1.png", "image_rel_path": "img/39pay1.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/46u5f1.png", "image_rel_path": "img/46u5f1.png", "split": "val", "y_true": [], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/4h37de.png", "image_rel_path": "img/4h37de.png", "split": "val", "y_true": [], "chart_type": ["bar chart", "pie chart"]}
+{"image_path": "misviz/img/4lvxy2.png", "image_rel_path": "img/4lvxy2.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/4mybm2.png", "image_rel_path": "img/4mybm2.png", "split": "dev", "y_true": [], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/4uctvn.png", "image_rel_path": "img/4uctvn.png", "split": "dev", "y_true": [], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/54ftt6.png", "image_rel_path": "img/54ftt6.png", "split": "val", "y_true": [], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/54wbm9.png", "image_rel_path": "img/54wbm9.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/58hxz6.png", "image_rel_path": "img/58hxz6.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/5c9cwu.png", "image_rel_path": "img/5c9cwu.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/5lq8ix.png", "image_rel_path": "img/5lq8ix.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/5mbn7z.png", "image_rel_path": "img/5mbn7z.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/5t24dx.png", "image_rel_path": "img/5t24dx.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/5xxbf0.png", "image_rel_path": "img/5xxbf0.png", "split": "val", "y_true": [], "chart_type": ["bar chart", "line chart"]}
+{"image_path": "misviz/img/6254ys.png", "image_rel_path": "img/6254ys.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/65ja5v.png", "image_rel_path": "img/65ja5v.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/67y5y5.png", "image_rel_path": "img/67y5y5.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/69etxd.png", "image_rel_path": "img/69etxd.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/6emhad.png", "image_rel_path": "img/6emhad.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/6fefhg.png", "image_rel_path": "img/6fefhg.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/6g8zvq.png", "image_rel_path": "img/6g8zvq.png", "split": "val", "y_true": [], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/6ip7ns.png", "image_rel_path": "img/6ip7ns.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/6j9o6g.png", "image_rel_path": "img/6j9o6g.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/6kqt0f.png", "image_rel_path": "img/6kqt0f.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/6uurpp.png", "image_rel_path": "img/6uurpp.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/6wv5zo.png", "image_rel_path": "img/6wv5zo.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/74t72u.png", "image_rel_path": "img/74t72u.png", "split": "val", "y_true": [], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/7618lr.png", "image_rel_path": "img/7618lr.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/7abp33.png", "image_rel_path": "img/7abp33.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/7fdl2f.png", "image_rel_path": "img/7fdl2f.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/7odhfr.png", "image_rel_path": "img/7odhfr.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/7wq0sf.png", "image_rel_path": "img/7wq0sf.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/867nxu.png", "image_rel_path": "img/867nxu.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/86cvlr.png", "image_rel_path": "img/86cvlr.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/8ad3ie.png", "image_rel_path": "img/8ad3ie.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/8g1rb6.png", "image_rel_path": "img/8g1rb6.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/8ify4a.png", "image_rel_path": "img/8ify4a.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/8r9di1.png", "image_rel_path": "img/8r9di1.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/8wr8ko.png", "image_rel_path": "img/8wr8ko.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/8y6joz.png", "image_rel_path": "img/8y6joz.png", "split": "val", "y_true": [], "chart_type": ["bar chart", "line chart"]}
+{"image_path": "misviz/img/8yz2fe.png", "image_rel_path": "img/8yz2fe.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/8zj3yz.png", "image_rel_path": "img/8zj3yz.png", "split": "val", "y_true": [], "chart_type": ["bar chart", "other"]}
+{"image_path": "misviz/img/93yzvf.png", "image_rel_path": "img/93yzvf.png", "split": "dev", "y_true": [], "chart_type": ["bar chart", "pie chart"]}
+{"image_path": "misviz/img/97fpxi.png", "image_rel_path": "img/97fpxi.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/9cnbry.png", "image_rel_path": "img/9cnbry.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/9ecxi6.png", "image_rel_path": "img/9ecxi6.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/9efbn8.png", "image_rel_path": "img/9efbn8.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/asdqso.png", "image_rel_path": "img/asdqso.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/azs6b4.png", "image_rel_path": "img/azs6b4.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/b2tdmp.png", "image_rel_path": "img/b2tdmp.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/btkihh.png", "image_rel_path": "img/btkihh.png", "split": "dev", "y_true": [], "chart_type": ["bar chart", "line chart"]}
+{"image_path": "misviz/img/c07cdb.png", "image_rel_path": "img/c07cdb.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/c66eqx.png", "image_rel_path": "img/c66eqx.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/ca9r6a.png", "image_rel_path": "img/ca9r6a.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/caty26.png", "image_rel_path": "img/caty26.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/cm4um7.png", "image_rel_path": "img/cm4um7.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/covqwj.png", "image_rel_path": "img/covqwj.png", "split": "val", "y_true": [], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/cs57qb.png", "image_rel_path": "img/cs57qb.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/cvy9wv.png", "image_rel_path": "img/cvy9wv.png", "split": "val", "y_true": [], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/cxigdf.png", "image_rel_path": "img/cxigdf.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/d1kktt.png", "image_rel_path": "img/d1kktt.png", "split": "dev", "y_true": [], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/dbfy3b.png", "image_rel_path": "img/dbfy3b.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/ddn9cz.png", "image_rel_path": "img/ddn9cz.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/dg36sk.png", "image_rel_path": "img/dg36sk.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/dkp0oz.png", "image_rel_path": "img/dkp0oz.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/dnltdb.png", "image_rel_path": "img/dnltdb.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/g0goxm.png", "image_rel_path": "img/g0goxm.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/g18jyh.png", "image_rel_path": "img/g18jyh.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/gkx6wc.png", "image_rel_path": "img/gkx6wc.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/gz51qh.png", "image_rel_path": "img/gz51qh.png", "split": "dev", "y_true": [], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/h7o8q1.png", "image_rel_path": "img/h7o8q1.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/h88qaj.png", "image_rel_path": "img/h88qaj.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/hv53qo.png", "image_rel_path": "img/hv53qo.png", "split": "dev", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/hv61w2.png", "image_rel_path": "img/hv61w2.png", "split": "val", "y_true": [], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/hvssou.png", "image_rel_path": "img/hvssou.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/iry3yb.png", "image_rel_path": "img/iry3yb.png", "split": "val", "y_true": [], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/juqfaq.png", "image_rel_path": "img/juqfaq.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/lww5wc.png", "image_rel_path": "img/lww5wc.png", "split": "val", "y_true": [], "chart_type": ["bar chart"]}
+{"image_path": "misviz/img/o1tete.png", "image_rel_path": "img/o1tete.png", "split": "val", "y_true": [], "chart_type": ["pie chart"]}
+{"image_path": "misviz/img/ycksa.png", "image_rel_path": "img/ycksa.png", "split": "val", "y_true": [], "chart_type": ["bar chart", "pie chart"]}

@@ -1,0 +1,11 @@
+misviz/
+*.pth
+DeepSeek-VL2/
+sam3/
+*.md
+docs/
+*.json
+*.out
+*.txt
+*.png
+.env
