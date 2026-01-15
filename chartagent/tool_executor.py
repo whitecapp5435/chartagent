@@ -9,7 +9,19 @@ from PIL import Image
 from PIL import ImageDraw
 
 TOOL_RESULT_CACHE_VERSION = 1
+_TOOL_RESULT_CACHE_TOOL_VERSIONS = {
+    # Bump when a tool's output semantics change and old cached results become misleading.
+    "axis_localizer": 2,
+    "bar_value_consistency": 3,
+}
 _CACHE_IGNORE_TOPLEVEL_ARG_KEYS = {"debug_dir"}
+
+
+def _tool_cache_version(tool: str) -> int:
+    try:
+        return int(_TOOL_RESULT_CACHE_TOOL_VERSIONS.get(str(tool), 1))
+    except Exception:
+        return 1
 
 
 def _jsonable(obj: Any) -> Any:
@@ -95,7 +107,12 @@ def _build_tool_cache_identity(tool: str, args: Dict[str, Any]) -> Optional[Tupl
             if str(k) in _CACHE_IGNORE_TOPLEVEL_ARG_KEYS:
                 continue
             norm_args[str(k)] = _normalize_for_cache_key(v)
-        payload = {"version": TOOL_RESULT_CACHE_VERSION, "tool": str(tool), "args": norm_args}
+        payload = {
+            "version": TOOL_RESULT_CACHE_VERSION,
+            "tool": str(tool),
+            "tool_version": _tool_cache_version(str(tool)),
+            "args": norm_args,
+        }
         s = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         return _sha1_hex(s.encode("utf-8")), norm_args
     except Exception:
@@ -301,6 +318,7 @@ def _save_to_cache(
     manifest = {
         "version": TOOL_RESULT_CACHE_VERSION,
         "tool": str(tool),
+        "tool_version": _tool_cache_version(str(tool)),
         "cache_key": str(cache_key),
         "args": norm_args,
         "result_summary": result.result_summary,
@@ -428,6 +446,9 @@ class ToolExecutor(object):
                                                 roi = (0, 0, int(round(thr_clamped * W)), H)
                                             elif ax_s == "right_y":
                                                 roi = (int(round((1.0 - thr_clamped) * W)), 0, W, H)
+                                            elif ax_s == "top_x":
+                                                thr_top = max(0.30, min(0.45, float(thr_clamped) + 0.15))
+                                                roi = (0, 0, W, int(round(thr_top * H)))
                                             else:
                                                 roi = (0, int(round((1.0 - thr_clamped) * H)), W, H)
                                             x0, y0, x1, y1 = [int(v) for v in roi]
@@ -626,12 +647,39 @@ class ToolExecutor(object):
                 ax_s = str(axis or "").strip().lower()
                 if ax_s == "x":
                     key = "x_axis_ticker_values"
+                elif ax_s == "top_x":
+                    # Intentionally do not bind tickers from metadata: in dual-x charts, metadata usually contains only one
+                    # tick list (often the bottom axis), which can bias/overfit the top-axis localization.
+                    #
+                    # However, allow model-provided tickers if they look like a percent axis (0..100).
+                    key = None
+                    if axis_tickers is not None:
+                        try:
+                            vals = [float(str(t).strip().rstrip("%")) for t in list(axis_tickers)]
+                            vals = [v for v in vals if float(v) == float(v)]  # drop NaN
+                        except Exception:
+                            vals = []
+                        ok = (
+                            len(vals) >= 3
+                            and len(vals) <= 15
+                            and all(0.0 <= float(v) <= 100.0 for v in vals)
+                            and (min(vals) <= 0.0 + 1e-6)
+                            and (max(vals) >= 100.0 - 1e-6)
+                        )
+                        if ok:
+                            axis_tickers_source = "args"
+                        else:
+                            axis_tickers = None
+                            axis_tickers_source = "ignored_invalid_args"
                 elif ax_s == "y":
                     key = "y_axis_ticker_values"
                 elif ax_s == "right_y":
                     key = "right_y_axis_ticker_values"
                 meta_ticks = meta.get(key) if key else None
-                if isinstance(meta_ticks, list) and any(str(t).strip() for t in meta_ticks):
+                if ax_s == "top_x" and axis_tickers_source in {"args", "ignored_invalid_args"}:
+                    # keep decision from above
+                    pass
+                elif isinstance(meta_ticks, list) and any(str(t).strip() for t in meta_ticks):
                     axis_tickers = meta_ticks
                     axis_tickers_source = "metadata"
                 elif axis_tickers is not None:
@@ -738,6 +786,9 @@ class ToolExecutor(object):
                     roi = (0, 0, int(round(thr0 * W)), H)
                 elif axis_s == "right_y":
                     roi = (int(round((1.0 - thr0) * W)), 0, W, H)
+                elif axis_s == "top_x":
+                    thr_top = max(0.30, min(0.45, float(thr0) + 0.15))
+                    roi = (0, 0, W, int(round(thr_top * H)))
                 else:
                     roi = (0, int(round((1.0 - thr0) * H)), W, H)
                 x0, y0, x1, y1 = [int(v) for v in roi]

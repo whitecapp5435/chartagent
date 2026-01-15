@@ -276,8 +276,8 @@ def main(argv: Optional[List[str]] = None) -> None:
     p_axis.add_argument(
         "--axis",
         required=True,
-        choices=["x", "y", "right_y"],
-        help="Axis to localize: x, y (left), right_y.",
+        choices=["x", "top_x", "y", "right_y"],
+        help="Axis to localize: x (bottom), top_x (top), y (left), right_y.",
     )
     p_axis.add_argument(
         "--axis-threshold",
@@ -1001,6 +1001,7 @@ def main(argv: Optional[List[str]] = None) -> None:
                 if isinstance(meta_json, dict):
                     axis_key = {
                         "x": "x_axis_ticker_values",
+                        "top_x": None,
                         "y": "y_axis_ticker_values",
                         "right_y": "right_y_axis_ticker_values",
                     }.get(str(args.axis), None)
@@ -1040,6 +1041,9 @@ def main(argv: Optional[List[str]] = None) -> None:
                 roi = (0, 0, int(round(thr * W)), H)
             elif str(args.axis) == "right_y":
                 roi = (int(round((1.0 - thr) * W)), 0, W, H)
+            elif str(args.axis) == "top_x":
+                thr_top = max(0.30, min(0.45, float(thr) + 0.15))
+                roi = (0, 0, W, int(round(thr_top * H)))
             else:
                 roi = (0, int(round((1.0 - thr) * H)), W, H)
             rx0, ry0, rx1, ry1 = [int(v) for v in roi]
@@ -1065,13 +1069,17 @@ def main(argv: Optional[List[str]] = None) -> None:
                         tx = int(x1)
                         ty = int(min(H - 1, y2 + 4))
                         draw.text((tx, ty), label, fill=(0, 0, 255), font=font)
+                    elif str(args.axis) == "top_x":
+                        tx = int(x1)
+                        ty = int(max(0, y1 - 22))
+                        draw.text((tx, ty), label, fill=(0, 0, 255), font=font)
                     else:
                         tx = int(max(0, x2 + 6))
                         ty = int(max(0, y1))
                         draw.text((tx, ty), label, fill=(0, 0, 255), font=font)
                 else:
                     # No bbox (inferred tick) -> annotate near the axis position.
-                    if str(args.axis) == "x":
+                    if str(args.axis) in {"x", "top_x"}:
                         draw.text((int(p), max(0, ry0 + 2)), label, fill=(0, 0, 255), font=font)
                     else:
                         draw.text((rx0 + 2, int(p)), label, fill=(0, 0, 255), font=font)

@@ -54,6 +54,28 @@ def _append_jsonl(path: str, obj: Dict[str, Any]) -> None:
         f.write(json.dumps(obj, ensure_ascii=False) + "\n")
 
 
+def _parse_int_set(s: str) -> Set[int]:
+    out: Set[int] = set()
+    for part in str(s or "").split(","):
+        part = part.strip()
+        if not part:
+            continue
+        out.add(int(part))
+    return out
+
+
+def _parse_str_set(values: Optional[List[str]]) -> Set[str]:
+    out: Set[str] = set()
+    if not values:
+        return out
+    for v in values:
+        for part in str(v or "").split(","):
+            part = part.strip()
+            if part:
+                out.add(part)
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--manifest", default="out/misviz_devval_manifest.jsonl")
@@ -77,6 +99,17 @@ def main() -> None:
     )
     ap.add_argument("--max-side", type=int, default=1024)
     ap.add_argument("--split", default="dev,val", help='Comma-separated: "dev", "val", or "dev,val".')
+    ap.add_argument(
+        "--only-idx",
+        default="",
+        help="Optional comma-separated 0-based indices into the filtered manifest (after --split, before --shuffle/--limit).",
+    )
+    ap.add_argument(
+        "--only-image-path",
+        action="append",
+        default=None,
+        help="Optional exact image_path filter(s). Repeatable; each value may also be comma-separated.",
+    )
     ap.add_argument("--limit", type=int, default=0, help="Optional max number of samples to run (0=all).")
     ap.add_argument("--shuffle", action="store_true")
     ap.add_argument("--seed", type=int, default=42)
@@ -100,6 +133,21 @@ def main() -> None:
 
     rows = [parse_manifest_line(obj) for obj in _iter_jsonl(args.manifest)]
     rows = [r for r in rows if r.split in set(splits)]
+
+    only_image_paths = _parse_str_set(getattr(args, "only_image_path", None))
+    if only_image_paths:
+        rows = [r for r in rows if r.image_path in only_image_paths]
+
+    only_idx_raw = str(getattr(args, "only_idx", "") or "").strip()
+    if only_idx_raw:
+        idxs = sorted(_parse_int_set(only_idx_raw))
+        picked = []
+        for j in idxs:
+            if j < 0 or j >= len(rows):
+                raise SystemExit(f"--only-idx contains out-of-range index: {j} (rows={len(rows)})")
+            picked.append(rows[j])
+        rows = picked
+
     if args.shuffle:
         random.seed(int(args.seed))
         random.shuffle(rows)

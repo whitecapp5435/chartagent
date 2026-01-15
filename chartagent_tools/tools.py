@@ -5019,8 +5019,8 @@ def _axis_localizer_with_boxes(
     if not isinstance(pil_image, Image.Image):
         raise TypeError("pil_image must be a PIL.Image.Image")
     axis_s = str(axis or "").strip().lower()
-    if axis_s not in ("x", "y", "right_y"):
-        raise ValueError("axis must be one of: 'x', 'y', 'right_y'")
+    if axis_s not in ("x", "top_x", "y", "right_y"):
+        raise ValueError("axis must be one of: 'x', 'top_x', 'y', 'right_y'")
 
     img = pil_image.convert("RGB")
     W, H = img.size
@@ -5034,6 +5034,11 @@ def _axis_localizer_with_boxes(
         roi = (0, 0, int(round(thr * W)), H)
     elif axis_s == "right_y":
         roi = (int(round((1.0 - thr) * W)), 0, W, H)
+    elif axis_s == "top_x":
+        # Top x-axis tick labels are often below the title/legend; use a slightly larger ROI
+        # than the bottom-x default to avoid missing them.
+        thr_top = max(0.30, min(0.45, thr + 0.15))
+        roi = (0, 0, W, int(round(thr_top * H)))
     else:
         roi = (0, int(round((1.0 - thr) * H)), W, H)
 
@@ -5213,6 +5218,49 @@ def _axis_localizer_with_boxes(
 
     if not candidates:
         raise RuntimeError(f"axis_localizer found no numeric tick candidates (engine={used_engine})")
+
+    # For a top x-axis scan, keep the densest horizontal band of numeric boxes to avoid mixing
+    # in-plot bar/annotation values with axis tick labels.
+    if axis_s == "top_x" and len(candidates) >= 3:
+        try:
+            ys = []
+            hs = []
+            for c in candidates:
+                bb = c.get("bbox_xyxy")
+                if not isinstance(bb, tuple) or len(bb) != 4:
+                    continue
+                y1, y2 = int(bb[1]), int(bb[3])
+                ys.append(0.5 * float(y1 + y2))
+                hs.append(max(1, int(y2 - y1)))
+            if ys and hs:
+                hs_sorted = sorted(hs)
+                med_h = float(hs_sorted[len(hs_sorted) // 2])
+                tol = max(10.0, 1.8 * med_h)
+                ys_sorted = sorted(ys)
+                best_i = 0
+                best_j = 0
+                j = 0
+                for i in range(len(ys_sorted)):
+                    while j < len(ys_sorted) and ys_sorted[j] <= ys_sorted[i] + tol:
+                        j += 1
+                    if (j - i) > (best_j - best_i):
+                        best_i, best_j = i, j
+                lo = ys_sorted[best_i]
+                hi = ys_sorted[best_j - 1] if best_j > best_i else ys_sorted[best_i]
+
+                band = []
+                for c in candidates:
+                    bb = c.get("bbox_xyxy")
+                    if not isinstance(bb, tuple) or len(bb) != 4:
+                        continue
+                    y1, y2 = int(bb[1]), int(bb[3])
+                    yc = 0.5 * float(y1 + y2)
+                    if (lo - 1e-6) <= yc <= (hi + 1e-6):
+                        band.append(c)
+                if len(band) >= 3:
+                    candidates = band
+        except Exception:
+            pass
 
     # If tickers are supplied, pick best matches per expected ticker.
     selected: List[Dict[str, object]]
@@ -6234,6 +6282,29 @@ def bar_value_consistency(
     rx1, ry1, rx2, ry2 = _clip_bbox_xyxy(roi, W, H)
     roi_img = img.crop((rx1, ry1, rx2, ry2))
 
+    # A coarse background color from the OCR ROI (used to filter obvious background pixels).
+    roi_arr = arr[ry1:ry2, rx1:rx2, :]
+    if roi_arr.size == 0:
+        roi_arr = arr
+    sample = roi_arr[
+        :: max(1, int(round(min(roi_arr.shape[0], roi_arr.shape[1]) / 120.0))),
+        :: max(1, int(round(min(roi_arr.shape[0], roi_arr.shape[1]) / 120.0))),
+        :,
+    ]
+    sample = sample.reshape(-1, 3).astype(np.uint8)
+    q = (sample // 16) * 16
+    vals, counts = np.unique(q, axis=0, return_counts=True)
+    bg = vals[int(np.argmax(counts))].astype(np.int16) if vals.size else np.array([255, 255, 255], dtype=np.int16)
+
+    def _l1_rgb_u8(rgb: np.ndarray, ref: np.ndarray) -> int:
+        return int(np.abs(rgb.astype(np.int16) - ref.astype(np.int16)).sum())
+
+    def _is_dark(rgb: np.ndarray) -> bool:
+        try:
+            return int(rgb[0]) + int(rgb[1]) + int(rgb[2]) < 60
+        except Exception:
+            return False
+
     def _ocr_words_roi(im: Image.Image) -> List[Dict[str, object]]:
         w0, h0 = im.size
         scale = 3 if max(w0, h0) <= 1300 else 2
@@ -6294,8 +6365,10 @@ def bar_value_consistency(
 
     words = _ocr_words_roi(roi_img)
 
-    # Numeric label candidates: keep digits/commas only. (Dates like 6/17 are typically filtered out.)
-    def _parse_int_label(text: str) -> Optional[int]:
+    # Numeric label candidates: allow decimals and percents (and filter out axis-tick-like labels later).
+    def _parse_numeric_label(text: str) -> Optional[Tuple[float, str]]:
+        import math
+
         t = str(text or "").strip()
         if not t:
             return None
@@ -6304,17 +6377,65 @@ def bar_value_consistency(
             return None
         if re.search(r"[A-Za-z]", t):
             return None
-        if not re.fullmatch(r"[0-9,]+", t):
+        t = t.replace(" ", "")
+        is_percent = False
+        if t.endswith("%"):
+            is_percent = True
+            t = t[:-1]
+        t = t.strip()
+        if not t:
+            return None
+        if not re.fullmatch(
+            r"[0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?|[0-9]+(?:\.[0-9]+)?",
+            t,
+        ):
             return None
         t2 = t.replace(",", "")
-        if not t2.isdigit():
-            return None
-        if len(t2) < 2:
+        digits = re.sub(r"[^0-9]", "", t2)
+        # Avoid pulling in single-digit ticks like "0" or "5" unless it's a decimal (e.g., "0.5").
+        if len(digits) < 2 and "." not in t2:
             return None
         try:
-            return int(t2)
+            v = float(t2)
         except Exception:
             return None
+        if not math.isfinite(v):
+            return None
+        if abs(float(v)) > 1e9:
+            return None
+        return float(v), ("percent" if is_percent else "number")
+
+    def _nonbg_ratio(x1: int, y1: int, x2: int, y2: int, *, bg_exclude_l1: int = 45) -> float:
+        x1c, y1c, x2c, y2c = _clip_bbox_xyxy((x1, y1, x2, y2), W, H)
+        if x2c <= x1c or y2c <= y1c:
+            return 0.0
+        region = arr[y1c:y2c, x1c:x2c, :]
+        if region.size == 0:
+            return 0.0
+        pix = region.astype(np.int16)
+        diff_bg = np.abs(pix - bg.reshape(1, 1, 3)).sum(axis=2)
+        dark = (pix[:, :, 0] + pix[:, :, 1] + pix[:, :, 2]) < 60
+        m = (diff_bg >= int(bg_exclude_l1)) & (~dark)
+        try:
+            return float(m.mean())
+        except Exception:
+            return 0.0
+
+    def _looks_like_value_label(label_bb: BboxXyxy) -> bool:
+        lx1, ly1, lx2, ly2 = [int(v) for v in label_bb]
+        lw = max(1, lx2 - lx1)
+        lh = max(1, ly2 - ly1)
+        pad = 2
+        if orient in ("vertical", "vertical-right"):
+            win = int(max(12, min(80, round(2.8 * float(lh) + 10))))
+            # Prefer bar pixels immediately below the label; fall back to above for rare layouts.
+            below = _nonbg_ratio(lx1 - 2, ly2 + pad, lx2 + 2, ly2 + pad + win)
+            above = _nonbg_ratio(lx1 - 2, ly1 - pad - win, lx2 + 2, ly1 - pad)
+            return bool(max(below, above) >= 0.08)
+        win = int(max(12, min(120, round(2.8 * float(lw) + 16))))
+        left = _nonbg_ratio(lx1 - pad - win, ly1 - 2, lx1 - pad, ly2 + 2)
+        right = _nonbg_ratio(lx2 + pad, ly1 - 2, lx2 + pad + win, ly2 + 2)
+        return bool(max(left, right) >= 0.08)
 
     cand_labels: List[Dict[str, object]] = []
     for w in words:
@@ -6322,16 +6443,25 @@ def bar_value_consistency(
         bb = w.get("bbox_xyxy")
         if not isinstance(bb, tuple) or len(bb) != 4:
             continue
-        v = _parse_int_label(text_s)
-        if v is None:
+        parsed = _parse_numeric_label(text_s)
+        if parsed is None:
             continue
+        v, v_kind = parsed
         try:
             conf_f = float(w.get("conf", 0.0) or 0.0)
         except Exception:
             conf_f = 0.0
         x1, y1, x2, y2 = [int(vv) for vv in bb]
         x1, y1, x2, y2 = _clip_bbox_xyxy((x1 + rx1, y1 + ry1, x2 + rx1, y2 + ry1), W, H)
-        cand_labels.append({"value": int(v), "text": text_s, "conf": float(conf_f), "bbox_xyxy": (x1, y1, x2, y2)})
+        cand_labels.append(
+            {
+                "value": float(v),
+                "value_kind": str(v_kind),
+                "text": text_s,
+                "conf": float(conf_f),
+                "bbox_xyxy": (x1, y1, x2, y2),
+            }
+        )
 
     # Sort by confidence and de-duplicate near-identical boxes.
     cand_labels.sort(key=lambda d: float(d.get("conf", 0.0) or 0.0), reverse=True)
@@ -6364,34 +6494,14 @@ def bar_value_consistency(
         if len(dedup) >= 24:
             break
 
+    # Filter out axis ticks / legends by requiring nearby bar-colored pixels.
+    dedup = [c for c in dedup if isinstance(c.get("bbox_xyxy"), tuple) and _looks_like_value_label(c["bbox_xyxy"])]
+
     # ---- 2) Bar localization under each value label (OCR-only, pixel-based) ----
     # We intentionally do NOT rely on axis detection here; this is for annotated bar charts where
     # axes may be missing/unreliable.
 
     import cv2  # type: ignore
-
-    # A coarse background color from the OCR ROI (used only to filter obvious background pixels).
-    roi_arr = arr[ry1:ry2, rx1:rx2, :]
-    if roi_arr.size == 0:
-        roi_arr = arr
-    sample = roi_arr[
-        :: max(1, int(round(min(roi_arr.shape[0], roi_arr.shape[1]) / 120.0))),
-        :: max(1, int(round(min(roi_arr.shape[0], roi_arr.shape[1]) / 120.0))),
-        :,
-    ]
-    sample = sample.reshape(-1, 3).astype(np.uint8)
-    q = (sample // 16) * 16
-    vals, counts = np.unique(q, axis=0, return_counts=True)
-    bg = vals[int(np.argmax(counts))].astype(np.int16) if vals.size else np.array([255, 255, 255], dtype=np.int16)
-
-    def _l1_rgb_u8(rgb: np.ndarray, ref: np.ndarray) -> int:
-        return int(np.abs(rgb.astype(np.int16) - ref.astype(np.int16)).sum())
-
-    def _is_dark(rgb: np.ndarray) -> bool:
-        try:
-            return int(rgb[0]) + int(rgb[1]) + int(rgb[2]) < 60
-        except Exception:
-            return False
 
     def _pick_seed_color(band: np.ndarray, *, bg_exclude_l1: int = 60) -> Optional[np.ndarray]:
         if band.size == 0:
@@ -6460,8 +6570,43 @@ def bar_value_consistency(
             # Prefer components centered under the label.
             align_pen = abs(cx - float(label_cx)) / float(max(1.0, roi_w))
             score = (float(area) * (0.6 + fill)) + (45.0 * float(h)) - (1800.0 * align_pen)
-            # Avoid selecting full-width strips.
-            if float(w) >= 0.92 * roi_w and float(h) <= 0.25 * float(mask_u8.shape[0]):
+            # Avoid selecting full-width *thin* strips (often gridlines), but keep actual bars.
+            thin_h = max(3, int(round(0.08 * float(mask_u8.shape[0]))))
+            if float(w) >= 0.92 * roi_w and int(h) <= thin_h and fill < 0.55:
+                continue
+            if score > best_score:
+                best_score = score
+                best = (int(x0 + x), int(y0 + y), int(x0 + x + w), int(y0 + y + h))
+        if best is None:
+            return None
+        return _clip_bbox_xyxy(best, W, H)
+
+    def _best_component_bbox_horizontal(
+        mask_u8: np.ndarray, *, x0: int, y0: int, label_cy: float, min_w: int, min_h: int
+    ) -> Optional[BboxXyxy]:
+        if mask_u8.size == 0:
+            return None
+        n, _, stats, cent = cv2.connectedComponentsWithStats(mask_u8, connectivity=8)
+        if n <= 1:
+            return None
+        roi_h = float(mask_u8.shape[0])
+        best = None
+        best_score = -1e18
+        for i in range(1, int(n)):
+            x, y, w, h, area = [int(v) for v in stats[i]]
+            if w < int(min_w) or h < int(min_h) or area < 30:
+                continue
+            fill = float(area) / float(max(1, w * h))
+            if fill < 0.35:
+                continue
+            cy = float(y0) + float(cent[i][1])
+            align_pen = abs(cy - float(label_cy)) / float(max(1.0, roi_h))
+            if align_pen > 0.35:
+                continue
+            score = (float(area) * (0.6 + fill)) + (45.0 * float(w)) - (1800.0 * align_pen)
+            # Avoid selecting full-height *thin* strips (often axis/gridlines), but keep bars.
+            thin_w = max(3, int(round(0.08 * float(mask_u8.shape[1]))))
+            if float(h) >= 0.92 * roi_h and int(w) <= thin_w and fill < 0.55:
                 continue
             if score > best_score:
                 best_score = score
@@ -6500,7 +6645,7 @@ def bar_value_consistency(
                 bar_bb = _best_component_bbox(m, x0=x0, y0=y0, label_cx=cx, min_w=6, min_h=3)
         else:
             # Horizontal bars: label is typically to the left/right of the bar.
-            half_h = int(max(22, min(90, round(1.9 * float(lh) + 18))))
+            half_h = int(max(14, min(60, round(1.2 * float(lh) + 8))))
             y0 = max(0, int(round(0.5 * float(ly1 + ly2) - float(half_h))))
             y1 = min(H, int(round(0.5 * float(ly1 + ly2) + float(half_h))))
             x1 = min(W - 1, max(0, int(lx1 - 1)))
@@ -6509,10 +6654,12 @@ def bar_value_consistency(
             seed = _pick_seed_color(band)
             if seed is not None:
                 m = _mask_close_to_seed(arr[y0:y1, x0:x1, :], seed, tol_l1=75, bg_exclude_l1=45)
-                bar_bb = _best_component_bbox(m, x0=x0, y0=y0, label_cx=0.5 * float(x0 + x1), min_w=3, min_h=6)
+                cy_label = 0.5 * float(ly1 + ly2)
+                bar_bb = _best_component_bbox_horizontal(m, x0=x0, y0=y0, label_cy=cy_label, min_w=6, min_h=3)
 
-        v = int(c.get("value", 0) or 0)
+        v = float(c.get("value", 0.0) or 0.0)
         text = str(c.get("text", "") or "")
+        v_kind = str(c.get("value_kind", "number") or "number")
         height_px = 0
         bar_bb_list: Optional[List[int]] = None
         if bar_bb is not None:
@@ -6524,17 +6671,20 @@ def bar_value_consistency(
 
         raw_pairs.append(
             {
-                "value": int(v),
+                "value": float(v),
+                "value_kind": v_kind,
                 "value_text": text,
                 "value_bbox_xyxy": [int(lx1), int(ly1), int(lx2), int(ly2)],
                 "bar_bbox_xyxy": bar_bb_list,
                 "bar_height_px": int(height_px),
                 "bar_found": bool(bar_bb is not None),
+                "seed_rgb": seed.tolist() if seed is not None else None,
             }
         )
         debug_labels.append(
             {
-                "value": int(v),
+                "value": float(v),
+                "value_kind": v_kind,
                 "value_text": text,
                 "value_bbox_xyxy": [int(lx1), int(ly1), int(lx2), int(ly2)],
                 "bar_bbox_xyxy": bar_bb_list,
@@ -6547,40 +6697,110 @@ def bar_value_consistency(
     # Keep only successful matches for scoring/preview.
     pairs = [p for p in raw_pairs if bool(p.get("bar_found")) and isinstance(p.get("bar_bbox_xyxy"), list)]
 
-    # ---- 3) Consistency score (order agreement) ----
-    values = [int(p.get("value", 0) or 0) for p in pairs]
-    heights = [int(p.get("bar_height_px", 0) or 0) for p in pairs]
+    # ---- 3) Consistency score (order agreement), per-series ----
+    def _score(values_in: List[float], lengths_in: List[float]) -> Tuple[Optional[float], Optional[float], bool]:
+        concordant0 = 0
+        discordant0 = 0
+        for i in range(len(values_in)):
+            for j in range(i + 1, len(values_in)):
+                dv = float(values_in[i] - values_in[j])
+                dh = float(lengths_in[i] - lengths_in[j])
+                if dv == 0.0 or dh == 0.0:
+                    continue
+                if dv * dh > 0.0:
+                    concordant0 += 1
+                else:
+                    discordant0 += 1
+        denom0 = max(1, concordant0 + discordant0)
+        tau0 = float(concordant0 - discordant0) / float(denom0) if denom0 > 0 else 0.0
+        disc0 = float(discordant0) / float(denom0) if denom0 > 0 else 0.0
 
-    concordant = 0
-    discordant = 0
-    for i in range(len(values)):
-        for j in range(i + 1, len(values)):
-            dv = int(values[i] - values[j])
-            dh = int(heights[i] - heights[j])
-            if dv == 0 or dh == 0:
-                continue
-            if dv * dh > 0:
-                concordant += 1
-            else:
-                discordant += 1
-    denom = max(1, concordant + discordant)
-    tau = float(concordant - discordant) / float(denom) if denom > 0 else 0.0
-    disc_ratio = float(discordant) / float(denom) if denom > 0 else 0.0
+        mismatch0 = False
+        n0 = int(len(values_in))
+        if n0 >= 4:
+            mismatch0 = bool(disc0 >= 0.25 or tau0 <= 0.4)
+        elif n0 == 3:
+            # With 3 points, a single inversion is common with OCR noise; require stronger disagreement.
+            mismatch0 = bool(disc0 >= 0.5 or tau0 <= 0.0)
+        elif n0 == 2:
+            dv = abs(float(values_in[0]) - float(values_in[1]))
+            dh = abs(float(lengths_in[0]) - float(lengths_in[1]))
+            if values_in[0] != values_in[1] and lengths_in[0] != lengths_in[1]:
+                flipped = (values_in[0] - values_in[1]) * (lengths_in[0] - lengths_in[1]) < 0.0
+                v_rel = dv / float(max(1.0, max(values_in)))
+                h_rel = dh / float(max(1.0, max(lengths_in)))
+                if flipped and v_rel >= 0.04 and h_rel >= 0.25:
+                    mismatch0 = True
+        if n0 < 2:
+            return None, None, False
+        return float(tau0), float(disc0), bool(mismatch0)
 
+    groups: Dict[Tuple[Optional[Tuple[int, int, int]], str], List[Dict[str, object]]] = {}
+    for p in pairs:
+        seed = p.get("seed_rgb")
+        seed_t: Optional[Tuple[int, int, int]] = None
+        if isinstance(seed, list) and len(seed) == 3:
+            try:
+                seed_t = (int(seed[0]), int(seed[1]), int(seed[2]))
+            except Exception:
+                seed_t = None
+        kind = str(p.get("value_kind", "number") or "number")
+        groups.setdefault((seed_t, kind), []).append(p)
+
+    group_stats: List[Dict[str, object]] = []
+    warning: Optional[str] = None
     is_mismatch = False
-    if len(pairs) >= 3:
-        # If many pairwise order inversions exist, bar sizes likely do not reflect annotated values.
-        is_mismatch = bool(disc_ratio >= 0.25 or tau <= 0.4)
-    elif len(pairs) == 2:
-        dv = abs(float(values[0]) - float(values[1]))
-        dh = abs(float(heights[0]) - float(heights[1]))
-        # Two-pair fallback: only flag mismatch when ordering flips and both differences are meaningful.
-        if values[0] != values[1] and heights[0] != heights[1]:
-            flipped = (values[0] - values[1]) * (heights[0] - heights[1]) < 0
-            v_rel = dv / float(max(1.0, max(values)))
-            h_rel = dh / float(max(1.0, max(heights)))
-            if flipped and v_rel >= 0.04 and h_rel >= 0.25:
-                is_mismatch = True
+    best_tau: Optional[float] = None
+    best_disc: Optional[float] = None
+    best_n = 0
+
+    if len(groups) >= 2:
+        warning = "Multiple series detected; bar-value consistency is evaluated per series to avoid mixed-scale false positives."
+
+    for (seed_t, kind), plist in groups.items():
+        vals_in: List[float] = []
+        lens_in: List[float] = []
+        for p in plist:
+            try:
+                vals_in.append(float(p.get("value", 0.0) or 0.0))
+            except Exception:
+                vals_in.append(0.0)
+            try:
+                lens_in.append(float(p.get("bar_height_px", 0.0) or 0.0))
+            except Exception:
+                lens_in.append(0.0)
+        tau0, disc0, mismatch0 = _score(vals_in, lens_in)
+
+        # If mismatch is driven by a single OCR outlier, don't over-trigger misrepresentation.
+        if mismatch0 and len(plist) >= 4:
+            for drop in range(len(plist)):
+                vals2 = [v for i, v in enumerate(vals_in) if i != drop]
+                lens2 = [l for i, l in enumerate(lens_in) if i != drop]
+                tau2, disc2, mismatch2 = _score(vals2, lens2)
+                if not mismatch2:
+                    mismatch0 = False
+                    if warning:
+                        warning = warning + " One point looked like an OCR outlier and was ignored for mismatch decision."
+                    else:
+                        warning = "One point looked like an OCR outlier and was ignored for mismatch decision."
+                    break
+
+        group_stats.append(
+            {
+                "seed_rgb": list(seed_t) if seed_t is not None else None,
+                "value_kind": kind,
+                "n_pairs": int(len(plist)),
+                "kendall_tau": tau0,
+                "discordant_ratio": disc0,
+                "is_mismatch": bool(mismatch0),
+            }
+        )
+        is_mismatch = bool(is_mismatch or mismatch0)
+
+        if int(len(plist)) > best_n:
+            best_n = int(len(plist))
+            best_tau = tau0
+            best_disc = disc0
 
     # ---- 4) Preview ----
     preview = img.copy()
@@ -6592,7 +6812,7 @@ def bar_value_consistency(
             draw.rectangle([int(vb[0]), int(vb[1]), int(vb[2]), int(vb[3])], outline=(0, 255, 0), width=2)
         if isinstance(bb, list) and len(bb) == 4:
             draw.rectangle([int(bb[0]), int(bb[1]), int(bb[2]), int(bb[3])], outline=(255, 0, 0), width=2)
-            label = "{}:{}".format(idx, int(p.get("value", 0) or 0))
+            label = "{}:{}".format(idx, str(p.get("value_text", "") or p.get("value", "")))
             draw.text((int(bb[0]), max(0, int(bb[1]) - 12)), label, fill=(255, 255, 0))
 
     if isinstance(debug_dir, str) and debug_dir.strip():
@@ -6609,9 +6829,11 @@ def bar_value_consistency(
         "n_value_labels": int(len(dedup)),
         "n_pairs": int(len(pairs)),
         "pairs": pairs,
-        "kendall_tau": float(tau) if len(pairs) >= 2 else None,
-        "discordant_ratio": float(disc_ratio) if len(pairs) >= 2 else None,
+        "kendall_tau": float(best_tau) if best_tau is not None else None,
+        "discordant_ratio": float(best_disc) if best_disc is not None else None,
         "is_mismatch": bool(is_mismatch),
+        "groups": group_stats,
+        "warning": warning,
     }
     return preview, result
 

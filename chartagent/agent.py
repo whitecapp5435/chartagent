@@ -3,6 +3,7 @@ import os
 import re
 import time
 from dataclasses import dataclass
+import math
 from typing import Any, Dict, List, Optional, Tuple
 
 from PIL import Image
@@ -87,6 +88,122 @@ def _extract_json_object_after_marker_re(text: str, marker_re: str) -> Optional[
     except Exception:
         return None
     return obj if isinstance(obj, dict) else None
+
+
+def _infer_bar_orientation_from_metadata(metadata: Optional[Dict[str, Any]]) -> Optional[str]:
+    """
+    Best-effort bar orientation hint from free-form metadata text.
+
+    Returns:
+      - "horizontal" | "vertical" | None
+    """
+    if not isinstance(metadata, dict):
+        return None
+
+    parts: List[str] = []
+    for k in ("chart_type", "visual_description"):
+        v = metadata.get(k)
+        if isinstance(v, list):
+            v = " ".join([str(x) for x in v])
+        if isinstance(v, str) and v.strip():
+            parts.append(v.strip())
+    text = " ".join(parts).lower()
+    if not text:
+        return None
+
+    if re.search(r"\bhorizontal[-\s]+bar\b", text):
+        return "horizontal"
+    if re.search(r"\bvertical[-\s]+bar\b", text) or re.search(r"\bcolumn\s+chart\b", text):
+        return "vertical"
+    return None
+
+
+def _axis_quality_signals(result_summary: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Lightweight axis evidence signals to help the LLM judge reliability.
+
+    Notes:
+      - This does NOT enforce any label decisions; it only reports stats.
+      - Keep this compact to avoid bloating the prompt history.
+    """
+    axis = str(result_summary.get("axis") or "").strip().lower()
+    values_raw = result_summary.get("axis_values")
+    pixels_raw = result_summary.get("axis_pixel_positions")
+
+    axis_conf: Optional[float]
+    try:
+        axis_conf = float(result_summary.get("axis_confidence")) if result_summary.get("axis_confidence") is not None else None
+    except Exception:
+        axis_conf = None
+
+    n_ticks: Optional[int]
+    try:
+        n_ticks = int(result_summary.get("n_ticks")) if result_summary.get("n_ticks") is not None else None
+    except Exception:
+        n_ticks = None
+
+    if not isinstance(values_raw, list):
+        return {"axis": axis, "axis_confidence": axis_conf, "n_ticks": n_ticks, "n_values": 0}
+
+    values: List[float] = []
+    for v in values_raw:
+        try:
+            fv = float(v)
+        except Exception:
+            continue
+        if not math.isfinite(fv):
+            continue
+        values.append(fv)
+
+    abs_vals = sorted([abs(v) for v in values])
+    median_abs: Optional[float] = None
+    max_abs: Optional[float] = None
+    if abs_vals:
+        n = len(abs_vals)
+        if n % 2 == 1:
+            median_abs = float(abs_vals[n // 2])
+        else:
+            median_abs = float((abs_vals[n // 2 - 1] + abs_vals[n // 2]) / 2.0)
+        max_abs = float(abs_vals[-1])
+
+    mono_inc = bool(values) and all(values[i] <= values[i + 1] for i in range(len(values) - 1))
+    mono_dec = bool(values) and all(values[i] >= values[i + 1] for i in range(len(values) - 1))
+
+    abs_deltas: List[float] = []
+    for i in range(len(values) - 1):
+        d = float(values[i + 1] - values[i])
+        if math.isfinite(d) and abs(d) > 0.0:
+            abs_deltas.append(abs(d))
+    delta_min: Optional[float] = float(min(abs_deltas)) if abs_deltas else None
+    delta_max: Optional[float] = float(max(abs_deltas)) if abs_deltas else None
+
+    out: Dict[str, Any] = {
+        "axis": axis,
+        "axis_present": bool(result_summary.get("axis_present")),
+        "axis_confidence": axis_conf,
+        "n_ticks": n_ticks,
+        "n_values": len(values),
+        "values_monotonic_increasing": mono_inc,
+        "values_monotonic_decreasing": mono_dec,
+        "median_abs_value": median_abs,
+        "max_abs_value": max_abs,
+        "delta_abs_min": delta_min,
+        "delta_abs_max": delta_max,
+    }
+    if median_abs and max_abs is not None:
+        try:
+            out["max_over_median_abs"] = float(max_abs / median_abs) if median_abs != 0 else None
+        except Exception:
+            out["max_over_median_abs"] = None
+    if delta_min and delta_max is not None:
+        try:
+            out["delta_max_over_min"] = float(delta_max / delta_min) if delta_min != 0 else None
+        except Exception:
+            out["delta_max_over_min"] = None
+
+    if isinstance(pixels_raw, list):
+        out["n_pixel_positions"] = len(pixels_raw)
+    return out
 
 
 @dataclass
@@ -284,6 +401,8 @@ class ChartAgent(object):
         tools_used: set[str] = set()
         last_action_sig: Optional[str] = None
 
+        bar_orientation_hint = _infer_bar_orientation_from_metadata(metadata)
+
         for step_idx in range(int(cfg.max_steps)):
             step_dir = os.path.join(steps_dir, "step_{:03d}".format(step_idx))
             _ensure_dir(step_dir)
@@ -341,13 +460,36 @@ class ChartAgent(object):
                 annotation_type = ""
                 if isinstance(metadata, dict):
                     annotation_type = str(metadata.get("annotation_type", "") or "").strip().lower()
+                answer_warnings: List[Dict[str, Any]] = []
 
                 # Require at least one tool call before answering (evidence-first), especially for misviz-style tasks.
                 # This keeps the agent from making unsupported guesses or returning empty labels prematurely.
                 if int(step_idx) == 0 and not tools_used:
                     suggested = None
                     if major_type == "bar" and annotation_type == "annotated":
-                        suggested = {"tool": "bar_value_consistency", "args": {"image": {"$ref": "input.image"}, "bar_orientation": "vertical"}}
+                        orient = "vertical"
+                        if bar_orientation_hint in {"horizontal", "vertical"}:
+                            orient = str(bar_orientation_hint)
+
+                        axis_guess = "x" if orient == "horizontal" else "y"
+                        tick_key = "x_axis_ticker_values" if axis_guess == "x" else "y_axis_ticker_values"
+                        tick_list = metadata.get(tick_key) if isinstance(metadata, dict) else None
+                        has_axis_tickers = isinstance(tick_list, list) and len(tick_list) >= 3
+
+                        # Prefer axis evidence when tick labels are available; use bar_value_consistency as a fallback
+                        # when ticks are missing/unreliable.
+                        if has_axis_tickers:
+                            suggested = {
+                                "tool": "axis_localizer",
+                                "args": {
+                                    "image": {"$ref": "input.image"},
+                                    "axis": axis_guess,
+                                    "axis_threshold": 0.2,
+                                    "axis_tickers": {"$ref": "input.metadata[{}]".format(tick_key)},
+                                },
+                            }
+                        else:
+                            suggested = {"tool": "bar_value_consistency", "args": {"image": {"$ref": "input.image"}, "bar_orientation": orient}}
                     elif major_type in {"bar", "line"}:
                         suggested = {"tool": "axis_localizer", "args": {"image": {"$ref": "input.image"}, "axis": "y", "axis_threshold": 0.2}}
                     elif major_type in {"pie", "donut", "radial"}:
@@ -381,30 +523,49 @@ class ChartAgent(object):
                     y_ok = _axis_present(axis_status.get("y"))
                     ry_ok = _axis_present(axis_status.get("right_y"))
                     x_ok = _axis_present(axis_status.get("x"))
+                    tx_ok = _axis_present(axis_status.get("top_x"))
 
                     ok = True
                     if "dual axis" in y_pred:
-                        ok = bool(y_ok and ry_ok)
+                        # Accept either dual-y (left + right) or dual-x (bottom + top).
+                        ok = bool((y_ok and ry_ok) or (x_ok and tx_ok))
                     else:
-                        ok = bool(y_ok or ry_ok or x_ok)
+                        ok = bool(y_ok or ry_ok or x_ok or tx_ok)
 
                     if not ok:
-                        # Prefer filtering out unsupported axis-based labels rather than failing the whole answer.
-                        # This prevents endless retries when the model insists on adding an axis label without evidence.
-                        filtered = [lbl for lbl in y_pred if lbl not in axis_labels]
-                        if filtered:
-                            y_pred = filtered
-                        else:
-                            # Treat as a validation failure: ask the model to retry rather than guessing.
-                            obs = {
-                                "validation_error": "Axis-based misleader labels require reliable axis evidence "
-                                "(axis_localizer with axis_present=true and >=3 ticks).",
-                                "axis_status": axis_status,
-                            }
-                            _safe_json_dump(os.path.join(step_dir, "observation.json"), obs)
-                            history_lines.append(model_text.strip())
-                            history_lines.append("OBSERVATION: {}".format(json.dumps(obs, ensure_ascii=False)))
-                            continue
+                        # Non-blocking: surface the missing/weak evidence so the trace stays debuggable,
+                        # but leave the final decision to the LLM (no hard rule-based filtering).
+                        warning: Dict[str, Any] = {
+                            "validation_warning": "Axis-based label(s) were predicted without strong axis_localizer evidence "
+                            "(need axis_present=true and typically >=3 ticks). Treat axis evidence as potentially unreliable.",
+                            "axis_status": axis_status,
+                        }
+                        if "dual axis" in y_pred:
+                            # Helpful suggestion: gather the missing second-axis evidence.
+                            if x_ok and not tx_ok:
+                                warning["suggested_next_action"] = {
+                                    "tool": "axis_localizer",
+                                    "args": {"image": {"$ref": "input.image"}, "axis": "top_x", "axis_threshold": 0.2},
+                                }
+                            elif tx_ok and not x_ok:
+                                warning["suggested_next_action"] = {
+                                    "tool": "axis_localizer",
+                                    "args": {"image": {"$ref": "input.image"}, "axis": "x", "axis_threshold": 0.2},
+                                }
+                            elif y_ok and not ry_ok:
+                                warning["suggested_next_action"] = {
+                                    "tool": "axis_localizer",
+                                    "args": {"image": {"$ref": "input.image"}, "axis": "right_y", "axis_threshold": 0.2},
+                                }
+                            elif ry_ok and not y_ok:
+                                warning["suggested_next_action"] = {
+                                    "tool": "axis_localizer",
+                                    "args": {"image": {"$ref": "input.image"}, "axis": "y", "axis_threshold": 0.2},
+                                }
+                        _safe_json_dump(os.path.join(step_dir, "observation.json"), warning)
+                        history_lines.append(model_text.strip())
+                        history_lines.append("OBSERVATION: {}".format(json.dumps(warning, ensure_ascii=False)))
+                        answer_warnings.append(warning)
 
                 # If the model is about to output an empty list for a bar chart after an unreliable axis check,
                 # run the bar-value consistency tool once before finalizing.
@@ -419,21 +580,24 @@ class ChartAgent(object):
                 ):
                     steps_left = int(cfg.max_steps) - int(step_idx) - 1
                     if steps_left >= 2:
-                        obs = {
-                            "validation_error": "Axis detection is unreliable for a bar chart. "
-                            "Before answering with an empty label set, run bar_value_consistency "
+                        warning: Dict[str, Any] = {
+                            "validation_warning": "Axis detection appears unreliable for a bar chart (axis_present=false). "
+                            "An empty label set may be under-supported; consider running bar_value_consistency "
                             "to check whether printed values agree with bar sizes.",
                             "axis_status": axis_status,
                         }
                         if annotation_type == "annotated":
-                            obs["suggested_next_action"] = {
+                            orient = "vertical"
+                            if bar_orientation_hint in {"horizontal", "vertical"}:
+                                orient = str(bar_orientation_hint)
+                            warning["suggested_next_action"] = {
                                 "tool": "bar_value_consistency",
-                                "args": {"image": {"$ref": "input.image"}, "bar_orientation": "vertical"},
+                                "args": {"image": {"$ref": "input.image"}, "bar_orientation": orient},
                             }
-                        _safe_json_dump(os.path.join(step_dir, "observation.json"), obs)
+                        _safe_json_dump(os.path.join(step_dir, "observation.json"), warning)
                         history_lines.append(model_text.strip())
-                        history_lines.append("OBSERVATION: {}".format(json.dumps(obs, ensure_ascii=False)))
-                        continue
+                        history_lines.append("OBSERVATION: {}".format(json.dumps(warning, ensure_ascii=False)))
+                        answer_warnings.append(warning)
 
                 out = {
                     "image_path": image_path,
@@ -441,6 +605,8 @@ class ChartAgent(object):
                     "raw_answer": ans,
                     "run_dir": run_dir,
                 }
+                if answer_warnings:
+                    out["validation_warnings"] = answer_warnings
                 _safe_json_dump(os.path.join(run_dir, "answer.json"), out)
                 return out
 
@@ -480,6 +646,61 @@ class ChartAgent(object):
             # Provide image automatically if missing.
             if "image" not in tool_args:
                 tool_args["image"] = current_image
+
+            pre_tool_warnings: List[Dict[str, Any]] = []
+
+            # Guardrail: avoid anchoring on misrepresentation when axis tick labels are available.
+            # For annotated bar charts, prefer screening axis-based misleaders (e.g., dual axis, truncated axis)
+            # before running bar_value_consistency.
+            major_type = major_chart_type_from_metadata(metadata)
+            annotation_type = ""
+            if isinstance(metadata, dict):
+                annotation_type = str(metadata.get("annotation_type", "") or "").strip().lower()
+            if tool_name == "bar_value_consistency" and major_type == "bar" and annotation_type == "annotated":
+                orient = str(tool_args.get("bar_orientation", "") or "").strip().lower()
+                if bar_orientation_hint in {"horizontal", "vertical"}:
+                    orient = str(bar_orientation_hint)
+                axis_guess = "x" if orient == "horizontal" else "y"
+                tick_key = "x_axis_ticker_values" if axis_guess == "x" else "y_axis_ticker_values"
+                tick_list = metadata.get(tick_key) if isinstance(metadata, dict) else None
+                has_axis_tickers = isinstance(tick_list, list) and len(tick_list) >= 3
+                if has_axis_tickers and axis_guess not in axis_status:
+                    pre_tool_warnings.append(
+                        {
+                            "validation_warning": "Metadata provides tick values for this bar chart axis. "
+                            "Consider screening axis-based misleaders with axis_localizer before relying on bar_value_consistency.",
+                            "suggested_next_action": {
+                                "tool": "axis_localizer",
+                                "args": {
+                                    "image": {"$ref": "input.image"},
+                                    "axis": axis_guess,
+                                    "axis_threshold": 0.2,
+                                    "axis_tickers": {"$ref": "input.metadata[{}]".format(tick_key)},
+                                },
+                            },
+                        }
+                    )
+
+            arg_corrections: Dict[str, Any] = {}
+            if tool_name == "bar_value_consistency" and bar_orientation_hint in {"horizontal", "vertical"}:
+                want = str(bar_orientation_hint)
+                got = str(tool_args.get("bar_orientation", "") or "").strip().lower()
+                if want == "horizontal" and got in {"", "vertical", "vertical-right"}:
+                    tool_args["bar_orientation"] = "horizontal"
+                    arg_corrections["bar_orientation"] = "horizontal"
+                elif want == "vertical" and got == "horizontal":
+                    tool_args["bar_orientation"] = "vertical"
+                    arg_corrections["bar_orientation"] = "vertical"
+
+            # If axis tickers are available in metadata, use them to guide OCR by default (x/y only).
+            if tool_name == "axis_localizer" and isinstance(metadata, dict):
+                axis = str(tool_args.get("axis") or "").strip().lower()
+                if axis in {"x", "y"} and "axis_tickers" not in tool_args:
+                    tick_key = "x_axis_ticker_values" if axis == "x" else "y_axis_ticker_values"
+                    ticks = metadata.get(tick_key)
+                    if isinstance(ticks, list) and len(ticks) >= 3:
+                        tool_args["axis_tickers"] = ticks
+                        arg_corrections["axis_tickers"] = {"source": "metadata", "key": tick_key}
             _safe_json_dump(os.path.join(step_dir, "action_resolved.json"), {"tool": tool_name, "args": tool_args})
 
             try:
@@ -504,6 +725,21 @@ class ChartAgent(object):
                     "error": str(e),
                 }
 
+            # Non-blocking: include quality signals to help the LLM judge axis evidence reliability.
+            if tool_name == "axis_localizer" and isinstance(obs, dict):
+                rs = obs.get("result_summary")
+                if isinstance(rs, dict):
+                    obs["quality_signals"] = _axis_quality_signals(rs)
+
+            if pre_tool_warnings and isinstance(obs, dict):
+                obs.setdefault("validation_warnings", [])
+                if isinstance(obs["validation_warnings"], list):
+                    obs["validation_warnings"].extend(pre_tool_warnings)
+                else:
+                    obs["validation_warnings"] = pre_tool_warnings
+
+            if arg_corrections:
+                obs["arg_corrections"] = arg_corrections
             _safe_json_dump(os.path.join(step_dir, "observation.json"), obs)
 
             history_lines.append(model_text.strip())
@@ -516,7 +752,7 @@ class ChartAgent(object):
                 rs = obs.get("result_summary")
                 if isinstance(rs, dict):
                     ax = str(rs.get("axis") or "").strip().lower()
-                    if ax in {"x", "y", "right_y"}:
+                    if ax in {"x", "top_x", "y", "right_y"}:
                         axis_status[ax] = rs
 
             # Update refs hint with new refs.
