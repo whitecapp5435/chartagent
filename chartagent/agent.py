@@ -285,7 +285,9 @@ class ChartAgent(object):
             tool = str(act.get("tool", "") or "").strip().lower()
             if tool in {"answer", "final"}:
                 args = act.get("args")
-                if isinstance(args, dict):
+                # Only accept this fallback if it looks like a real answer payload.
+                # (Some models emit ACTION {"tool":"ANSWER","args":{}} which should NOT be treated as a valid answer.)
+                if isinstance(args, dict) and isinstance(args.get("misleader"), list):
                     return args
         return None
 
@@ -434,9 +436,15 @@ class ChartAgent(object):
                 refs_hint=refs_hint,
             )
             steps_left = int(cfg.max_steps) - int(step_idx)
-            prompt += "\nRuntime note: {} step(s) remaining. Avoid repeating tools; answer as soon as you have enough evidence.\n".format(
-                steps_left
-            )
+            if not tools_used:
+                prompt += (
+                    "\nRuntime note: {} step(s) remaining. This is the first evidence step: do NOT output ANSWER yet.\n"
+                    "List 2–4 plausible misleader hypotheses briefly, then output exactly one ACTION tool call to gather evidence.\n"
+                ).format(steps_left)
+            else:
+                prompt += "\nRuntime note: {} step(s) remaining. Avoid repeating tools; answer once you have enough evidence.\n".format(
+                    steps_left
+                )
             if images_desc:
                 prompt += "\nAttached images (in order):\n" + "\n".join(images_desc) + "\n"
             with open(os.path.join(step_dir, "prompt.txt"), "w") as f:
@@ -462,44 +470,13 @@ class ChartAgent(object):
                     annotation_type = str(metadata.get("annotation_type", "") or "").strip().lower()
                 answer_warnings: List[Dict[str, Any]] = []
 
-                # Require at least one tool call before answering (evidence-first), especially for misviz-style tasks.
-                # This keeps the agent from making unsupported guesses or returning empty labels prematurely.
-                if int(step_idx) == 0 and not tools_used:
-                    suggested = None
-                    if major_type == "bar" and annotation_type == "annotated":
-                        orient = "vertical"
-                        if bar_orientation_hint in {"horizontal", "vertical"}:
-                            orient = str(bar_orientation_hint)
-
-                        axis_guess = "x" if orient == "horizontal" else "y"
-                        tick_key = "x_axis_ticker_values" if axis_guess == "x" else "y_axis_ticker_values"
-                        tick_list = metadata.get(tick_key) if isinstance(metadata, dict) else None
-                        has_axis_tickers = isinstance(tick_list, list) and len(tick_list) >= 3
-
-                        # Prefer axis evidence when tick labels are available; use bar_value_consistency as a fallback
-                        # when ticks are missing/unreliable.
-                        if has_axis_tickers:
-                            suggested = {
-                                "tool": "axis_localizer",
-                                "args": {
-                                    "image": {"$ref": "input.image"},
-                                    "axis": axis_guess,
-                                    "axis_threshold": 0.2,
-                                    "axis_tickers": {"$ref": "input.metadata[{}]".format(tick_key)},
-                                },
-                            }
-                        else:
-                            suggested = {"tool": "bar_value_consistency", "args": {"image": {"$ref": "input.image"}, "bar_orientation": orient}}
-                    elif major_type in {"bar", "line"}:
-                        suggested = {"tool": "axis_localizer", "args": {"image": {"$ref": "input.image"}, "axis": "y", "axis_threshold": 0.2}}
-                    elif major_type in {"pie", "donut", "radial"}:
-                        suggested = {"tool": "segment_and_mark", "args": {"image": {"$ref": "input.image"}, "segmentation_model": "SAM", "min_area": 5000}}
-                    else:
-                        suggested = {"tool": "axis_localizer", "args": {"image": {"$ref": "input.image"}, "axis": "y", "axis_threshold": 0.2}}
-
+                # Evidence-first: do not allow answers before any tool call.
+                # We intentionally avoid suggesting a single next action to reduce anchoring.
+                if not tools_used:
                     obs = {
-                        "validation_error": "Evidence-first policy: you must run at least one relevant tool before answering.",
-                        "suggested_next_action": suggested,
+                        "validation_error": "Evidence-first policy: you must run at least one relevant tool before answering. "
+                        "In your next response: list 2–4 plausible misleader hypotheses, then output exactly one ACTION tool call "
+                        "to gather evidence for the most testable hypothesis.",
                     }
                     _safe_json_dump(os.path.join(step_dir, "observation.json"), obs)
                     history_lines.append(model_text.strip())
@@ -541,27 +518,15 @@ class ChartAgent(object):
                             "axis_status": axis_status,
                         }
                         if "dual axis" in y_pred:
-                            # Helpful suggestion: gather the missing second-axis evidence.
+                            # Optional guidance (avoid prescribing a single ACTION, which can cause anchoring).
                             if x_ok and not tx_ok:
-                                warning["suggested_next_action"] = {
-                                    "tool": "axis_localizer",
-                                    "args": {"image": {"$ref": "input.image"}, "axis": "top_x", "axis_threshold": 0.2},
-                                }
+                                warning["next_step_guidance"] = "To strengthen dual-axis evidence, consider running axis_localizer on axis='top_x'."
                             elif tx_ok and not x_ok:
-                                warning["suggested_next_action"] = {
-                                    "tool": "axis_localizer",
-                                    "args": {"image": {"$ref": "input.image"}, "axis": "x", "axis_threshold": 0.2},
-                                }
+                                warning["next_step_guidance"] = "To strengthen dual-axis evidence, consider running axis_localizer on axis='x'."
                             elif y_ok and not ry_ok:
-                                warning["suggested_next_action"] = {
-                                    "tool": "axis_localizer",
-                                    "args": {"image": {"$ref": "input.image"}, "axis": "right_y", "axis_threshold": 0.2},
-                                }
+                                warning["next_step_guidance"] = "To strengthen dual-axis evidence, consider running axis_localizer on axis='right_y'."
                             elif ry_ok and not y_ok:
-                                warning["suggested_next_action"] = {
-                                    "tool": "axis_localizer",
-                                    "args": {"image": {"$ref": "input.image"}, "axis": "y", "axis_threshold": 0.2},
-                                }
+                                warning["next_step_guidance"] = "To strengthen dual-axis evidence, consider running axis_localizer on axis='y'."
                         _safe_json_dump(os.path.join(step_dir, "observation.json"), warning)
                         history_lines.append(model_text.strip())
                         history_lines.append("OBSERVATION: {}".format(json.dumps(warning, ensure_ascii=False)))
@@ -586,14 +551,6 @@ class ChartAgent(object):
                             "to check whether printed values agree with bar sizes.",
                             "axis_status": axis_status,
                         }
-                        if annotation_type == "annotated":
-                            orient = "vertical"
-                            if bar_orientation_hint in {"horizontal", "vertical"}:
-                                orient = str(bar_orientation_hint)
-                            warning["suggested_next_action"] = {
-                                "tool": "bar_value_consistency",
-                                "args": {"image": {"$ref": "input.image"}, "bar_orientation": orient},
-                            }
                         _safe_json_dump(os.path.join(step_dir, "observation.json"), warning)
                         history_lines.append(model_text.strip())
                         history_lines.append("OBSERVATION: {}".format(json.dumps(warning, ensure_ascii=False)))
@@ -623,6 +580,15 @@ class ChartAgent(object):
                 continue
 
             tool_name, tool_args = act
+            if str(tool_name).strip().lower() in {"answer", "final"}:
+                obs = {
+                    "validation_error": "Do not call ANSWER as a tool. Output an `ANSWER:` line with "
+                    "{\"misleader\": [...], \"confidence\": {...}, \"rationale\": \"...\"} and then `TERMINATE`.",
+                }
+                _safe_json_dump(os.path.join(step_dir, "observation.json"), obs)
+                history_lines.append(model_text.strip())
+                history_lines.append("OBSERVATION: {}".format(json.dumps(obs, ensure_ascii=False)))
+                continue
             _safe_json_dump(os.path.join(step_dir, "action.json"), {"tool": tool_name, "args": tool_args})
 
             # Guardrail: skip repeated identical tool calls (common local-VLM failure mode).
@@ -669,15 +635,6 @@ class ChartAgent(object):
                         {
                             "validation_warning": "Metadata provides tick values for this bar chart axis. "
                             "Consider screening axis-based misleaders with axis_localizer before relying on bar_value_consistency.",
-                            "suggested_next_action": {
-                                "tool": "axis_localizer",
-                                "args": {
-                                    "image": {"$ref": "input.image"},
-                                    "axis": axis_guess,
-                                    "axis_threshold": 0.2,
-                                    "axis_tickers": {"$ref": "input.metadata[{}]".format(tick_key)},
-                                },
-                            },
                         }
                     )
 

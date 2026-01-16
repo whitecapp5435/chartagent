@@ -11,8 +11,8 @@ from PIL import ImageDraw
 TOOL_RESULT_CACHE_VERSION = 1
 _TOOL_RESULT_CACHE_TOOL_VERSIONS = {
     # Bump when a tool's output semantics change and old cached results become misleading.
-    "axis_localizer": 2,
-    "bar_value_consistency": 3,
+    "axis_localizer": 3,
+    "bar_value_consistency": 4,
 }
 _CACHE_IGNORE_TOPLEVEL_ARG_KEYS = {"debug_dir"}
 
@@ -761,11 +761,24 @@ class ToolExecutor(object):
                         continue
                 pairs.sort(key=lambda t: t[0])
                 corr_score = 0.0
+                direction_ok: Optional[bool] = None
+                mono_ok = False
                 if len(pairs) >= 3:
                     import math
 
                     ps = [p for p, _ in pairs]
                     vs = [v for _, v in pairs]
+                    mono_inc = all(vs[i] <= vs[i + 1] for i in range(len(vs) - 1))
+                    mono_dec = all(vs[i] >= vs[i + 1] for i in range(len(vs) - 1))
+                    if mono_inc or mono_dec:
+                        mono_ok = True
+                        if is_y:
+                            # For y-axes, pixel position increases downward; values normally *decrease* downward.
+                            direction_ok = bool(vs[0] >= vs[-1])
+                        else:
+                            # For x-axes, pixel position increases to the right; values normally increase to the right.
+                            direction_ok = bool(vs[0] <= vs[-1])
+
                     mp = sum(ps) / float(len(ps))
                     mv = sum(vs) / float(len(vs))
                     cov = sum((p - mp) * (v - mv) for p, v in zip(ps, vs))
@@ -773,8 +786,9 @@ class ToolExecutor(object):
                     vv = sum((v - mv) ** 2 for v in vs)
                     if vp > 1e-9 and vv > 1e-9:
                         corr = float(cov / float(math.sqrt(vp * vv)))
-                        sign_ok = corr < 0.0 if is_y else corr > 0.0
-                        corr_score = float(max(0.0, min(1.0, abs(corr)))) if sign_ok else 0.0
+                        # Axis *presence* requires a monotonic relationship; direction may be reversed (inverted axis).
+                        if mono_inc or mono_dec:
+                            corr_score = float(max(0.0, min(1.0, abs(corr))))
 
                 edge_score = 0.5
                 # Compute ROI like tools.axis_localizer: edge heuristics depend on where OCR boxes fall within the ROI.
@@ -821,6 +835,9 @@ class ToolExecutor(object):
 
                 # Combine scores. Cap confidence when we have <3 ticks (too weak to diagnose axis-based misleaders).
                 conf = (0.35 * n_score) + (0.25 * span_score) + (0.20 * corr_score) + (0.20 * edge_score)
+                # If the OCR values do not form a monotonic sequence along the axis, they are very likely not ticks.
+                if n >= 3 and not mono_ok:
+                    conf *= 0.25
                 if n < 3:
                     conf *= 0.30
                 conf = float(max(0.0, min(1.0, conf)))
@@ -836,6 +853,8 @@ class ToolExecutor(object):
                         warn = "non_monotonic_or_nonlinear"
                     else:
                         warn = "low_confidence"
+                elif direction_ok is False:
+                    warn = "direction_reversed"
 
                 return {
                     "axis_present": axis_present,

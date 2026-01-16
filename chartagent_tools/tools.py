@@ -6428,10 +6428,10 @@ def bar_value_consistency(
         pad = 2
         if orient in ("vertical", "vertical-right"):
             win = int(max(12, min(80, round(2.8 * float(lh) + 10))))
-            # Prefer bar pixels immediately below the label; fall back to above for rare layouts.
+            # Value labels for vertical bars are typically placed on/above the bar, so the bar pixels should
+            # appear immediately below the label. Using "above" as a fallback tends to admit x-axis tick labels.
             below = _nonbg_ratio(lx1 - 2, ly2 + pad, lx2 + 2, ly2 + pad + win)
-            above = _nonbg_ratio(lx1 - 2, ly1 - pad - win, lx2 + 2, ly1 - pad)
-            return bool(max(below, above) >= 0.08)
+            return bool(below >= 0.08)
         win = int(max(12, min(120, round(2.8 * float(lw) + 16))))
         left = _nonbg_ratio(lx1 - pad - win, ly1 - 2, lx1 - pad, ly2 + 2)
         right = _nonbg_ratio(lx2 + pad, ly1 - 2, lx2 + pad + win, ly2 + 2)
