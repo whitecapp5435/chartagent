@@ -5093,6 +5093,7 @@ def _axis_localizer_with_boxes(
         used_engine = "easyocr"
         reader = _get_easyocr_reader()
         allow = "0123456789.-+%kKmMbBtTeE,()$€£¥"
+        allow_text = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%.,:/\\-+_()'’"
 
         def _easyocr_words_allow(im: Image.Image) -> List[Dict[str, object]]:
             arr = np.asarray(im.convert("RGB"))
@@ -5168,6 +5169,55 @@ def _axis_localizer_with_boxes(
                 out.append({"text": text_s, "conf": conf_f, "bbox_xyxy": (x1_, y1_, x2_, y2_)})
             return out
 
+        def _easyocr_words_text_allow(im: Image.Image) -> List[Dict[str, object]]:
+            arr = np.asarray(im.convert("RGB"))
+            try:
+                det = reader.readtext(arr, detail=1, paragraph=False, allowlist=allow_text)
+            except Exception:
+                det = []
+            out: List[Dict[str, object]] = []
+            for item in det:
+                if not isinstance(item, (list, tuple)) or len(item) < 3:
+                    continue
+                quad, text, conf = item[0], item[1], item[2]
+                text_s = str(text or "").strip()
+                if not text_s:
+                    continue
+                try:
+                    conf_f = float(conf)
+                except Exception:
+                    conf_f = 0.0
+                xs: List[float] = []
+                ys: List[float] = []
+                try:
+                    for p in quad:
+                        xs.append(float(p[0]))
+                        ys.append(float(p[1]))
+                except Exception:
+                    continue
+                if not xs or not ys:
+                    continue
+                x1_ = int(max(0, min(xs)))
+                y1_ = int(max(0, min(ys)))
+                x2_ = int(max(xs))
+                y2_ = int(max(ys))
+                if x2_ <= x1_ or y2_ <= y1_:
+                    continue
+                out.append({"text": text_s, "conf": conf_f, "bbox_xyxy": (x1_, y1_, x2_, y2_)})
+            return out
+
+        def _prep_text_ocr(im: Image.Image) -> Image.Image:
+            try:
+                from PIL import ImageEnhance, ImageFilter, ImageOps  # type: ignore
+
+                g = im.convert("L")
+                g = ImageOps.autocontrast(g)
+                g = ImageEnhance.Contrast(g).enhance(2.0)
+                g = g.filter(ImageFilter.UnsharpMask(radius=2, percent=150, threshold=3))
+                return g.convert("RGB")
+            except Exception:
+                return im
+
         # For very wide ROIs (typical x-axis), tile OCR improves recall vs running on a huge strip.
         if axis_s == "x" and rw >= 900:
             n_tiles = int(max(1, math.ceil(float(rw) / 900.0)))
@@ -5228,7 +5278,10 @@ def _axis_localizer_with_boxes(
                         (max(2, (tx2 - tx1) * scale), max(2, rh * scale)),
                         resample=Image.BICUBIC,
                     )
-                    det = _easyocr_words_any(tile_up)
+                    tile_up = _prep_text_ocr(tile_up)
+                    det = _easyocr_words_text_allow(tile_up)
+                    if not det:
+                        det = _easyocr_words_any(tile_up)
                     for w0 in det:
                         bb = w0.get("bbox_xyxy")
                         if not isinstance(bb, tuple) or len(bb) != 4:
@@ -5244,7 +5297,10 @@ def _axis_localizer_with_boxes(
             else:
                 scale = 2 if max(rw, rh) >= 1400 else 3
                 roi_up = roi_img.resize((max(2, rw * scale), max(2, rh * scale)), resample=Image.BICUBIC)
-                det = _easyocr_words_any(roi_up)
+                roi_up = _prep_text_ocr(roi_up)
+                det = _easyocr_words_text_allow(roi_up)
+                if not det:
+                    det = _easyocr_words_any(roi_up)
                 for w0 in det:
                     bb = w0.get("bbox_xyxy")
                     if not isinstance(bb, tuple) or len(bb) != 4:
@@ -5275,13 +5331,23 @@ def _axis_localizer_with_boxes(
                 (bx1, by1, bx2, by2),
                 tile_off=(x0, y0),
             )
+            if axis_s in ("x", "top_x"):
+                _append_word(
+                    ocr_words_text,
+                    str(w0.get("text", "") or ""),
+                    float(w0.get("conf", 0.0) or 0.0) / 100.0,
+                    (bx1, by1, bx2, by2),
+                    tile_off=(x0, y0),
+                )
     else:
         raise RuntimeError(
             "axis_localizer requires an OCR backend. Install EasyOCR (`pip install easyocr`) "
             "or install `tesseract` + `pytesseract`."
         )
 
-    ocr_words_text_eff = ocr_words_text if ocr_words_text else ocr_words_numeric
+    # Non-numeric tick labels are most important for x-axes (e.g., months/quarters/categories).
+    # For y/right_y, exposing text ticks tends to add OCR noise without helping downstream reasoning.
+    ocr_words_text_eff = ocr_words_text if axis_s in ("x", "top_x") else []
 
     def _filter_reasonable(words: List[Dict[str, object]]) -> List[Dict[str, object]]:
         out: List[Dict[str, object]] = []

@@ -11,7 +11,7 @@ from PIL import ImageDraw
 TOOL_RESULT_CACHE_VERSION = 1
 _TOOL_RESULT_CACHE_TOOL_VERSIONS = {
     # Bump when a tool's output semantics change and old cached results become misleading.
-    "axis_localizer": 4,
+    "axis_localizer": 5,
     "bar_value_consistency": 4,
 }
 _CACHE_IGNORE_TOPLEVEL_ARG_KEYS = {"debug_dir"}
