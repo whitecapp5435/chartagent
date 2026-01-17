@@ -4998,7 +4998,7 @@ def axis_localizer(
       - axis_values: list[float]
       - axis_pixel_positions: list[int] (x for x-axis, y for y-axes)
     """
-    axis_values, axis_pixel_positions, _ = _axis_localizer_with_boxes(
+    axis_values, axis_pixel_positions, _, _, _, _ = _axis_localizer_with_boxes(
         pil_image, axis=axis, axis_threshold=axis_threshold, axis_tickers=axis_tickers
     )
     return axis_values, axis_pixel_positions
@@ -5010,9 +5010,17 @@ def _axis_localizer_with_boxes(
     axis: str,
     axis_threshold: float = 0.2,
     axis_tickers: Optional[List] = None,
-) -> Tuple[List[float], List[int], List[Optional[BboxXyxy]]]:
+) -> Tuple[
+    List[float],
+    List[int],
+    List[Optional[BboxXyxy]],
+    List[str],
+    List[int],
+    List[Optional[BboxXyxy]],
+]:
     """
-    Internal helper for CLI previews: like `axis_localizer`, but also returns per-tick bboxes (xyxy).
+    Internal helper for CLI previews: like `axis_localizer`, but also returns per-tick bboxes (xyxy)
+    and OCR tick texts (including non-numeric tick labels when available).
 
     For inferred ticks (filled via linear fit), bbox is None.
     """
@@ -5040,7 +5048,10 @@ def _axis_localizer_with_boxes(
         thr_top = max(0.30, min(0.45, thr + 0.15))
         roi = (0, 0, W, int(round(thr_top * H)))
     else:
-        roi = (0, int(round((1.0 - thr) * H)), W, H)
+        # Bottom x-axis tick labels can sit above legends/footnotes; use a slightly larger ROI
+        # than the default threshold to avoid missing them.
+        thr_bottom = max(0.25, min(0.45, thr + 0.10))
+        roi = (0, int(round((1.0 - thr_bottom) * H)), W, H)
 
     x0, y0, x1, y1 = [int(v) for v in roi]
     x0 = max(0, min(x0, W))
@@ -5055,14 +5066,22 @@ def _axis_localizer_with_boxes(
 
     # OCR backend selection (prefer EasyOCR for rotation robustness).
     used_engine = None
-    ocr_words: List[Dict[str, object]] = []
+    ocr_words_numeric: List[Dict[str, object]] = []
+    ocr_words_text: List[Dict[str, object]] = []
 
-    def _append_word(text: str, conf: float, bb_xyxy: Tuple[int, int, int, int], *, tile_off: Tuple[int, int]) -> None:
+    def _append_word(
+        target: List[Dict[str, object]],
+        text: str,
+        conf: float,
+        bb_xyxy: Tuple[int, int, int, int],
+        *,
+        tile_off: Tuple[int, int],
+    ) -> None:
         if not text:
             return
         tx, ty = tile_off
         x1_, y1_, x2_, y2_ = bb_xyxy
-        ocr_words.append(
+        target.append(
             {
                 "text": str(text),
                 "conf": float(conf),
@@ -5079,6 +5098,43 @@ def _axis_localizer_with_boxes(
             arr = np.asarray(im.convert("RGB"))
             try:
                 det = reader.readtext(arr, detail=1, paragraph=False, allowlist=allow)
+            except Exception:
+                det = []
+            out: List[Dict[str, object]] = []
+            for item in det:
+                if not isinstance(item, (list, tuple)) or len(item) < 3:
+                    continue
+                quad, text, conf = item[0], item[1], item[2]
+                text_s = str(text or "").strip()
+                if not text_s:
+                    continue
+                try:
+                    conf_f = float(conf)
+                except Exception:
+                    conf_f = 0.0
+                xs: List[float] = []
+                ys: List[float] = []
+                try:
+                    for p in quad:
+                        xs.append(float(p[0]))
+                        ys.append(float(p[1]))
+                except Exception:
+                    continue
+                if not xs or not ys:
+                    continue
+                x1_ = int(max(0, min(xs)))
+                y1_ = int(max(0, min(ys)))
+                x2_ = int(max(xs))
+                y2_ = int(max(ys))
+                if x2_ <= x1_ or y2_ <= y1_:
+                    continue
+                out.append({"text": text_s, "conf": conf_f, "bbox_xyxy": (x1_, y1_, x2_, y2_)})
+            return out
+
+        def _easyocr_words_any(im: Image.Image) -> List[Dict[str, object]]:
+            arr = np.asarray(im.convert("RGB"))
+            try:
+                det = reader.readtext(arr, detail=1, paragraph=False)
             except Exception:
                 det = []
             out: List[Dict[str, object]] = []
@@ -5132,6 +5188,7 @@ def _axis_localizer_with_boxes(
                         continue
                     bx1, by1, bx2, by2 = [int(round(float(v) / float(scale))) for v in bb]
                     _append_word(
+                        ocr_words_numeric,
                         str(w0.get("text", "") or ""),
                         float(w0.get("conf", 0.0) or 0.0),
                         (bx1, by1, bx2, by2),
@@ -5147,11 +5204,59 @@ def _axis_localizer_with_boxes(
                     continue
                 bx1, by1, bx2, by2 = [int(round(float(v) / float(scale))) for v in bb]
                 _append_word(
+                    ocr_words_numeric,
                     str(w0.get("text", "") or ""),
                     float(w0.get("conf", 0.0) or 0.0),
                     (bx1, by1, bx2, by2),
                     tile_off=(x0, y0),
                 )
+
+        # Second pass (x-axes only): capture non-numeric tick labels (e.g., months) without an allowlist.
+        if axis_s in ("x", "top_x"):
+            if axis_s == "x" and rw >= 900:
+                n_tiles = int(max(1, math.ceil(float(rw) / 900.0)))
+                overlap = int(round(0.10 * float(rw) / float(max(1, n_tiles))))
+                tile_w = int(math.ceil(float(rw) / float(n_tiles)))
+                scale = 2
+                for i in range(n_tiles):
+                    tx1 = max(0, i * tile_w - overlap)
+                    tx2 = min(rw, (i + 1) * tile_w + overlap)
+                    if tx2 <= tx1:
+                        continue
+                    tile = roi_img.crop((tx1, 0, tx2, rh))
+                    tile_up = tile.resize(
+                        (max(2, (tx2 - tx1) * scale), max(2, rh * scale)),
+                        resample=Image.BICUBIC,
+                    )
+                    det = _easyocr_words_any(tile_up)
+                    for w0 in det:
+                        bb = w0.get("bbox_xyxy")
+                        if not isinstance(bb, tuple) or len(bb) != 4:
+                            continue
+                        bx1, by1, bx2, by2 = [int(round(float(v) / float(scale))) for v in bb]
+                        _append_word(
+                            ocr_words_text,
+                            str(w0.get("text", "") or ""),
+                            float(w0.get("conf", 0.0) or 0.0),
+                            (bx1, by1, bx2, by2),
+                            tile_off=(x0 + tx1, y0),
+                        )
+            else:
+                scale = 2 if max(rw, rh) >= 1400 else 3
+                roi_up = roi_img.resize((max(2, rw * scale), max(2, rh * scale)), resample=Image.BICUBIC)
+                det = _easyocr_words_any(roi_up)
+                for w0 in det:
+                    bb = w0.get("bbox_xyxy")
+                    if not isinstance(bb, tuple) or len(bb) != 4:
+                        continue
+                    bx1, by1, bx2, by2 = [int(round(float(v) / float(scale))) for v in bb]
+                    _append_word(
+                        ocr_words_text,
+                        str(w0.get("text", "") or ""),
+                        float(w0.get("conf", 0.0) or 0.0),
+                        (bx1, by1, bx2, by2),
+                        tile_off=(x0, y0),
+                    )
 
     elif _tesseract_available():
         used_engine = "tesseract"
@@ -5164,6 +5269,7 @@ def _axis_localizer_with_boxes(
                 continue
             bx1, by1, bx2, by2 = [int(round(float(v) / float(scale))) for v in bb]
             _append_word(
+                ocr_words_numeric,
                 str(w0.get("text", "") or ""),
                 float(w0.get("conf", 0.0) or 0.0) / 100.0,
                 (bx1, by1, bx2, by2),
@@ -5175,34 +5281,92 @@ def _axis_localizer_with_boxes(
             "or install `tesseract` + `pytesseract`."
         )
 
-    # Collect numeric candidates.
+    ocr_words_text_eff = ocr_words_text if ocr_words_text else ocr_words_numeric
+
+    def _filter_reasonable(words: List[Dict[str, object]]) -> List[Dict[str, object]]:
+        out: List[Dict[str, object]] = []
+        for w in words:
+            text = str(w.get("text", "") or "").strip()
+            bbox = w.get("bbox_xyxy")
+            if not text or not isinstance(bbox, tuple) or len(bbox) != 4:
+                continue
+            try:
+                conf = float(w.get("conf", 0.0) or 0.0)
+            except Exception:
+                conf = 0.0
+            fx1, fy1, fx2, fy2 = [int(v) for v in bbox]
+            if fx2 <= fx1 or fy2 <= fy1:
+                continue
+            bw = fx2 - fx1
+            bh = fy2 - fy1
+            if bw <= 0 or bh <= 0:
+                continue
+            # Reject extremely large boxes (likely not tick labels).
+            if bw > int(0.85 * W) or bh > int(0.60 * H):
+                continue
+            out.append({"text": text, "conf": float(conf), "bbox_xyxy": (fx1, fy1, fx2, fy2)})
+        return out
+
+    def _select_densest_band(words: List[Dict[str, object]]) -> List[Dict[str, object]]:
+        # For x-axes: keep the densest horizontal band (by y-center).
+        # For y-axes: keep the densest vertical band (by x-center).
+        if len(words) < 3:
+            return words
+        use_y = axis_s in ("x", "top_x")
+        centers: List[float] = []
+        sizes: List[int] = []
+        for w in words:
+            bb = w.get("bbox_xyxy")
+            if not isinstance(bb, tuple) or len(bb) != 4:
+                continue
+            x1_, y1_, x2_, y2_ = [int(v) for v in bb]
+            if use_y:
+                centers.append(0.5 * float(y1_ + y2_))
+                sizes.append(max(1, int(y2_ - y1_)))
+            else:
+                centers.append(0.5 * float(x1_ + x2_))
+                sizes.append(max(1, int(x2_ - x1_)))
+        if len(centers) < 3 or not sizes:
+            return words
+        med_sz = float(np.median(np.asarray(sizes, dtype=np.float64)))
+        tol = max(10.0, 1.8 * med_sz)
+        centers_sorted = sorted(centers)
+        best_i = 0
+        best_j = 0
+        j = 0
+        for i in range(len(centers_sorted)):
+            while j < len(centers_sorted) and centers_sorted[j] <= centers_sorted[i] + tol:
+                j += 1
+            if (j - i) > (best_j - best_i):
+                best_i, best_j = i, j
+        lo = centers_sorted[best_i]
+        hi = centers_sorted[best_j - 1] if best_j > best_i else centers_sorted[best_i]
+
+        band: List[Dict[str, object]] = []
+        for w in words:
+            bb = w.get("bbox_xyxy")
+            if not isinstance(bb, tuple) or len(bb) != 4:
+                continue
+            x1_, y1_, x2_, y2_ = [int(v) for v in bb]
+            c = 0.5 * float(y1_ + y2_) if use_y else 0.5 * float(x1_ + x2_)
+            if (lo - 1e-6) <= c <= (hi + 1e-6):
+                band.append(w)
+        return band if len(band) >= 3 else words
+
+    words_numeric = _select_densest_band(_filter_reasonable(ocr_words_numeric))
+    words_text_all = _filter_reasonable(ocr_words_text_eff)
+
+    # Collect numeric candidates (tick values).
     candidates: List[Dict[str, object]] = []
-    for w in ocr_words:
+    for w in words_numeric:
         text = str(w.get("text", "") or "").strip()
-        bbox = w.get("bbox_xyxy")
-        if not text or not isinstance(bbox, tuple) or len(bbox) != 4:
+        bb = w.get("bbox_xyxy")
+        if not text or not isinstance(bb, tuple) or len(bb) != 4:
             continue
-        try:
-            conf = float(w.get("conf", 0.0) or 0.0)
-        except Exception:
-            conf = 0.0
-
-        fx1, fy1, fx2, fy2 = [int(v) for v in bbox]
-        if fx2 <= fx1 or fy2 <= fy1:
-            continue
-
-        # Reject extremely large boxes (likely not tick labels).
-        bw = fx2 - fx1
-        bh = fy2 - fy1
-        if bw <= 0 or bh <= 0:
-            continue
-        if bw > int(0.85 * W) or bh > int(0.60 * H):
-            continue
-
         val = _parse_axis_tick_value(text)
         if val is None:
             continue
-
+        fx1, fy1, fx2, fy2 = [int(v) for v in bb]
         cx = int(round(0.5 * float(fx1 + fx2)))
         cy = int(round(0.5 * float(fy1 + fy2)))
         pos = cy if axis_s in ("y", "right_y") else cx
@@ -5211,56 +5375,83 @@ def _axis_localizer_with_boxes(
                 "text": text,
                 "value": float(val),
                 "pos": int(pos),
-                "conf": float(conf),
+                "conf": float(w.get("conf", 0.0) or 0.0),
                 "bbox_xyxy": (int(fx1), int(fy1), int(fx2), int(fy2)),
             }
         )
 
-    if not candidates:
-        raise RuntimeError(f"axis_localizer found no numeric tick candidates (engine={used_engine})")
+    def _looks_like_tick_text(text: str) -> bool:
+        s = str(text or "").strip()
+        if not s:
+            return False
+        if len(s) > 16:
+            return False
+        # Exclude multi-word legend-like strings; tick labels are usually short tokens.
+        if any(ch.isspace() for ch in s):
+            return False
+        return True
 
-    # For a top x-axis scan, keep the densest horizontal band of numeric boxes to avoid mixing
-    # in-plot bar/annotation values with axis tick labels.
-    if axis_s == "top_x" and len(candidates) >= 3:
-        try:
-            ys = []
-            hs = []
-            for c in candidates:
-                bb = c.get("bbox_xyxy")
-                if not isinstance(bb, tuple) or len(bb) != 4:
-                    continue
-                y1, y2 = int(bb[1]), int(bb[3])
-                ys.append(0.5 * float(y1 + y2))
-                hs.append(max(1, int(y2 - y1)))
-            if ys and hs:
-                hs_sorted = sorted(hs)
-                med_h = float(hs_sorted[len(hs_sorted) // 2])
-                tol = max(10.0, 1.8 * med_h)
-                ys_sorted = sorted(ys)
-                best_i = 0
-                best_j = 0
-                j = 0
-                for i in range(len(ys_sorted)):
-                    while j < len(ys_sorted) and ys_sorted[j] <= ys_sorted[i] + tol:
-                        j += 1
-                    if (j - i) > (best_j - best_i):
-                        best_i, best_j = i, j
-                lo = ys_sorted[best_i]
-                hi = ys_sorted[best_j - 1] if best_j > best_i else ys_sorted[best_i]
+    # Filter to tick-like text tokens first to avoid the legend (often multi-word) dominating the band selection.
+    words_text_tickish = [
+        w
+        for w in words_text_all
+        if _looks_like_tick_text(str(w.get("text", "") or "")) and float(w.get("conf", 0.0) or 0.0) >= 0.20
+    ]
+    words_text = _select_densest_band(words_text_tickish)
 
-                band = []
-                for c in candidates:
-                    bb = c.get("bbox_xyxy")
-                    if not isinstance(bb, tuple) or len(bb) != 4:
-                        continue
-                    y1, y2 = int(bb[1]), int(bb[3])
-                    yc = 0.5 * float(y1 + y2)
-                    if (lo - 1e-6) <= yc <= (hi + 1e-6):
-                        band.append(c)
-                if len(band) >= 3:
-                    candidates = band
-        except Exception:
-            pass
+    # Collect text ticks (evidence for non-numeric tick labels).
+    text_candidates: List[Dict[str, object]] = []
+    for w in words_text:
+        text = str(w.get("text", "") or "").strip()
+        bb = w.get("bbox_xyxy")
+        if not text or not isinstance(bb, tuple) or len(bb) != 4:
+            continue
+        fx1, fy1, fx2, fy2 = [int(v) for v in bb]
+        cx = int(round(0.5 * float(fx1 + fx2)))
+        cy = int(round(0.5 * float(fy1 + fy2)))
+        pos = cy if axis_s in ("y", "right_y") else cx
+        text_candidates.append(
+            {
+                "text": text,
+                "pos": int(pos),
+                "conf": float(w.get("conf", 0.0) or 0.0),
+                "bbox_xyxy": (int(fx1), int(fy1), int(fx2), int(fy2)),
+            }
+        )
+
+    # Deduplicate text ticks by proximity along the axis direction.
+    tick_texts: List[str] = []
+    tick_positions: List[int] = []
+    tick_bboxes: List[Optional[BboxXyxy]] = []
+    if text_candidates:
+        sizes = []
+        for c in text_candidates:
+            bb = c.get("bbox_xyxy")
+            if isinstance(bb, tuple) and len(bb) == 4:
+                sizes.append(max(1, int(bb[3] - bb[1])) if axis_s in ("y", "right_y") else max(1, int(bb[2] - bb[0])))
+        med_sz = int(np.median(np.asarray(sizes, dtype=np.int32))) if sizes else 12
+        merge_dist = int(max(6, round(0.7 * float(med_sz))))
+        text_sorted = sorted(text_candidates, key=lambda d: int(d.get("pos", 0)))
+        merged_text: List[Dict[str, object]] = []
+        for c in text_sorted:
+            if not merged_text:
+                merged_text.append(c)
+                continue
+            if abs(int(c.get("pos", 0)) - int(merged_text[-1].get("pos", 0))) <= merge_dist:
+                c_conf = float(c.get("conf", 0.0) or 0.0)
+                m_conf = float(merged_text[-1].get("conf", 0.0) or 0.0)
+                if (c_conf, len(str(c.get("text", "")))) > (m_conf, len(str(merged_text[-1].get("text", "")))):
+                    merged_text[-1] = c
+            else:
+                merged_text.append(c)
+        for c in merged_text:
+            tick_texts.append(str(c.get("text", "")))
+            tick_positions.append(int(c.get("pos", 0)))
+            bb = c.get("bbox_xyxy")
+            if isinstance(bb, tuple) and len(bb) == 4:
+                tick_bboxes.append((int(bb[0]), int(bb[1]), int(bb[2]), int(bb[3])))
+            else:
+                tick_bboxes.append(None)
 
     # If tickers are supplied, pick best matches per expected ticker.
     selected: List[Dict[str, object]]
@@ -5394,7 +5585,7 @@ def _axis_localizer_with_boxes(
             axis_bboxes.append((int(bb[0]), int(bb[1]), int(bb[2]), int(bb[3])))
         else:
             axis_bboxes.append(None)
-    return axis_values, axis_pixel_positions, axis_bboxes
+    return axis_values, axis_pixel_positions, axis_bboxes, tick_texts, tick_positions, tick_bboxes
 
 
 def interpolate_pixel_to_value(

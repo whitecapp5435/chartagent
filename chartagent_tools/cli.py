@@ -1010,7 +1010,7 @@ def main(argv: Optional[List[str]] = None) -> None:
             except Exception:
                 tickers = tickers
 
-        axis_values, axis_pixel_positions, axis_bboxes = _axis_localizer_with_boxes(
+        axis_values, axis_pixel_positions, axis_bboxes, tick_texts, tick_positions, tick_text_bboxes = _axis_localizer_with_boxes(
             img,
             axis=str(args.axis),
             axis_threshold=float(getattr(args, "axis_threshold", 0.2) or 0.2),
@@ -1024,6 +1024,11 @@ def main(argv: Optional[List[str]] = None) -> None:
             "axis_threshold": float(getattr(args, "axis_threshold", 0.2) or 0.2),
             "axis_values": [float(v) for v in axis_values],
             "axis_pixel_positions": [int(p) for p in axis_pixel_positions],
+            "tick_texts": [str(t) for t in tick_texts],
+            "tick_text_positions": [int(p) for p in tick_positions],
+            "tick_text_bboxes": [
+                [int(v) for v in bb] if isinstance(bb, tuple) and len(bb) == 4 else None for bb in tick_text_bboxes
+            ],
             "tickers_used": tickers if tickers is not None else None,
         }
 
@@ -1045,7 +1050,8 @@ def main(argv: Optional[List[str]] = None) -> None:
                 thr_top = max(0.30, min(0.45, float(thr) + 0.15))
                 roi = (0, 0, W, int(round(thr_top * H)))
             else:
-                roi = (0, int(round((1.0 - thr) * H)), W, H)
+                thr_bottom = max(0.25, min(0.45, float(thr) + 0.10))
+                roi = (0, int(round((1.0 - thr_bottom) * H)), W, H)
             rx0, ry0, rx1, ry1 = [int(v) for v in roi]
             draw.rectangle(list(roi), outline=(150, 150, 150), width=2)
             try:

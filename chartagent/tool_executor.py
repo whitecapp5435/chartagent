@@ -11,7 +11,7 @@ from PIL import ImageDraw
 TOOL_RESULT_CACHE_VERSION = 1
 _TOOL_RESULT_CACHE_TOOL_VERSIONS = {
     # Bump when a tool's output semantics change and old cached results become misleading.
-    "axis_localizer": 3,
+    "axis_localizer": 4,
     "bar_value_consistency": 4,
 }
 _CACHE_IGNORE_TOPLEVEL_ARG_KEYS = {"debug_dir"}
@@ -689,14 +689,25 @@ class ToolExecutor(object):
             elif axis_tickers is not None:
                 axis_tickers_source = "args"
             tick_bboxes = None
+            tick_texts: List[str] = []
+            tick_text_positions: List[int] = []
+            tick_text_bboxes: Optional[List[Optional[Tuple[int, int, int, int]]]] = None
             # Prefer the internal helper that also returns per-tick bboxes so we can generate a preview.
             if hasattr(self._tools, "_axis_localizer_with_boxes"):
-                axis_values, axis_pixel_positions, tick_bboxes = self._tools._axis_localizer_with_boxes(  # type: ignore[attr-defined]
+                res = self._tools._axis_localizer_with_boxes(  # type: ignore[attr-defined]
                     img,
                     axis=axis,
                     axis_threshold=thr,
                     axis_tickers=axis_tickers,
                 )
+                if isinstance(res, tuple) and len(res) >= 3:
+                    axis_values, axis_pixel_positions, tick_bboxes = res[0], res[1], res[2]
+                    if len(res) >= 6:
+                        tick_texts = list(res[3] or [])
+                        tick_text_positions = list(res[4] or [])
+                        tick_text_bboxes = list(res[5] or [])
+                else:
+                    axis_values, axis_pixel_positions, tick_bboxes = [], [], None
             else:
                 axis_values, axis_pixel_positions = self._tools.axis_localizer(
                     img,
@@ -706,21 +717,43 @@ class ToolExecutor(object):
                 )
             _store("axis_values", list(axis_values))
             _store("axis_pixel_positions", list(axis_pixel_positions))
+            if tick_texts:
+                _store("axis_tick_texts", list(tick_texts))
+                _store("axis_tick_text_positions", list(tick_text_positions))
+                if isinstance(tick_text_bboxes, list) and tick_text_bboxes:
+                    _store("axis_tick_text_bboxes", tick_text_bboxes)
             if isinstance(tick_bboxes, list) and tick_bboxes:
                 _store("axis_tick_bboxes", tick_bboxes)
-                # Draw a preview for visual self-verification.
+            # Draw a preview for visual self-verification (numeric ticks + text ticks).
+            has_any_boxes = bool(
+                (isinstance(tick_bboxes, list) and any(bb for bb in tick_bboxes))
+                or (isinstance(tick_text_bboxes, list) and any(bb for bb in tick_text_bboxes))
+            )
+            if has_any_boxes:
                 preview = img.convert("RGB").copy()
                 draw = ImageDraw.Draw(preview)
-                for i, bb in enumerate(tick_bboxes):
-                    if not bb:
-                        continue
-                    try:
-                        x1, y1, x2, y2 = [int(v) for v in bb]
-                    except Exception:
-                        continue
-                    draw.rectangle([x1, y1, x2, y2], outline=(255, 0, 0), width=2)
-                    label = str(axis_values[i]) if i < len(axis_values) else str(i)
-                    draw.text((x1, max(0, y1 - 12)), label, fill=(0, 0, 255))
+                if isinstance(tick_bboxes, list) and tick_bboxes:
+                    for i, bb in enumerate(tick_bboxes):
+                        if not bb:
+                            continue
+                        try:
+                            x1, y1, x2, y2 = [int(v) for v in bb]
+                        except Exception:
+                            continue
+                        draw.rectangle([x1, y1, x2, y2], outline=(255, 0, 0), width=2)
+                        label = str(axis_values[i]) if i < len(axis_values) else str(i)
+                        draw.text((x1, max(0, y1 - 12)), label, fill=(0, 0, 255))
+                if isinstance(tick_text_bboxes, list) and tick_text_bboxes:
+                    for i, bb in enumerate(tick_text_bboxes):
+                        if not bb:
+                            continue
+                        try:
+                            x1, y1, x2, y2 = [int(v) for v in bb]
+                        except Exception:
+                            continue
+                        draw.rectangle([x1, y1, x2, y2], outline=(0, 200, 0), width=2)
+                        label = str(tick_texts[i]) if i < len(tick_texts) else str(i)
+                        draw.text((x1, min(img.size[1] - 12, max(0, y2 + 2))), label, fill=(0, 120, 0))
                 _store("axis_preview", preview)
                 p = os.path.join(run_step_dir, "axis_{}_preview.png".format(axis or "axis"))
                 _save_image(p, preview)
@@ -871,6 +904,13 @@ class ToolExecutor(object):
             if isinstance(conf_info, dict) and conf_info.get("axis_present") is False:
                 axis_values_out = []
                 axis_pixel_positions_out = []
+            # Text ticks are useful evidence even when numeric ticks are unreliable (e.g., months on x-axis).
+            tt_n = int(len(tick_texts) if isinstance(tick_texts, list) else 0)
+            tt_cap = min(tt_n, 50)
+            tick_texts_out = tick_texts[:tt_cap] if isinstance(tick_texts, list) else []
+            tick_text_positions_out = (
+                tick_text_positions[:tt_cap] if isinstance(tick_text_positions, list) else []
+            )
             return _finalize(ToolExecutionResult(
                 tool=name,
                 result_summary={
@@ -878,6 +918,9 @@ class ToolExecutor(object):
                     "n_ticks": len(axis_values),
                     "axis_values": axis_values_out,
                     "axis_pixel_positions": axis_pixel_positions_out,
+                    "n_text_ticks": tt_n,
+                    "tick_texts": tick_texts_out,
+                    "tick_text_positions": tick_text_positions_out,
                     "has_preview": bool(artifacts.get("axis_preview")),
                     "axis_tickers_source": axis_tickers_source,
                     **conf_info,

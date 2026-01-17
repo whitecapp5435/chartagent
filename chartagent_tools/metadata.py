@@ -22,7 +22,17 @@ Important rules:
 - For all *_axis_ticker_values fields, list ALL tick labels that are explicitly written on the chart (do not abbreviate, subsample, or skip values).
   - Do NOT use ranges (e.g., "0-120") or ellipses (e.g., "0, 20, ..., 120").
   - Keep the original order as it appears on the axis (x: left→right, y: bottom→top).
-  - Return tick labels as strings exactly as shown. If a particular tick label is unreadable, omit that label (do not guess or infer missing labels).
+  - Return tick labels as strings exactly as shown (verbatim). If a particular tick label is unreadable, omit that label (do not guess or infer missing labels).
+  - Do NOT normalize or expand tick labels. Do NOT convert abbreviated forms into more explicit forms. Examples:
+      - "’23" must stay "’23" (do not convert to "2023")
+      - "Q3" must stay "Q3" (do not convert to "Quarter 3")
+      - "1.5K" must stay "1.5K" (do not convert to "1500")
+      - "0%" must stay "0%" (do not convert to "0")
+      - "1,000" must stay "1,000" (do not convert to "1000")
+
+  - If the figure contains multiple panels/insets with separate x-axes, include x-axis ticks from ALL panels.
+    Put them into a single `x_axis_ticker_values` list in left→right reading order across the whole figure.
+    In `visual_description`, explicitly describe the panel boundary (e.g., a divider line or inset position) and which tick labels belong to each panel.
 
 - chart_type: e.g., pie chart, multi-ring pie chart, bar chart, line chart, box plot, etc.
 - title: Exact chart title as shown.
